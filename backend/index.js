@@ -2236,17 +2236,27 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Serve frontend built static assets in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../frontend/dist');
+// Serve frontend built static assets if present, otherwise serve clean API status root
+const distPath = path.join(__dirname, '../frontend/dist');
+const indexHtmlPath = path.join(distPath, 'index.html');
+
+if (fs.existsSync(indexHtmlPath)) {
   app.use(express.static(distPath));
   
-  // Wildcard client side router fallback (version-agnostic middleware approach)
   app.use((req, res, next) => {
     if (req.path.startsWith('/api') || req.method !== 'GET') {
       return next();
     }
-    res.sendFile(path.join(distPath, 'index.html'));
+    res.sendFile(indexHtmlPath);
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      status: 'online',
+      service: 'PlotHole Backend API',
+      version: '1.0.0',
+      database: 'connected'
+    });
   });
 }
 
