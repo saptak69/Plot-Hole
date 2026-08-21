@@ -384,33 +384,33 @@ export default function Profile() {
   ];
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-6 md:py-10 text-left font-sans space-y-8 md:space-y-10">
+    <div className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-4 sm:py-6 md:py-10 text-left font-sans space-y-6 sm:space-y-8">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
-      <div className="border border-white/8 bg-gradient-to-br from-[#121216] via-[#0d0d12] to-[#08080a] p-4.5 sm:p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#e50914]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="border border-white/10 bg-[#121216]/95 backdrop-blur-xl p-3.5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden space-y-4 sm:space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#e50914]/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Mobile Top Row: Avatar + Name + Tag + Member Since */}
-        <div className="flex items-center gap-4 sm:gap-5 lg:block lg:shrink-0 relative z-10">
-          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 border-2 border-[#e50914]/50 rounded-2xl sm:rounded-3xl overflow-hidden bg-black shadow-xl ring-4 ring-[#e50914]/10">
+        <div className="flex items-center gap-3.5 sm:gap-5 lg:block lg:shrink-0 relative z-10">
+          <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 border border-[#e50914]/40 rounded-2xl overflow-hidden bg-black shadow-xl ring-2 ring-[#e50914]/20">
             <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
           </div>
 
-          <div className="min-w-0 flex-1 lg:hidden text-left space-y-1">
-            <h1 className="text-lg sm:text-xl font-display font-black text-white truncate">
+          <div className="min-w-0 flex-1 lg:hidden text-left space-y-0.5">
+            <h1 className="text-base sm:text-xl font-display font-black text-white truncate">
               {profileUser.display_name || profileUser.username}
             </h1>
-            <span className="inline-block text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+            <span className="inline-block text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
               @{profileUser.username}
             </span>
-            <p className="text-[9px] font-mono text-slate-500 pt-0.5">
+            <p className="text-[9px] font-mono text-slate-400 pt-0.5">
               JOINED {new Date(profileUser.created_at).toLocaleDateString()}
             </p>
           </div>
         </div>
 
         {/* User Identity & Stats & Bio */}
-        <div className="flex-1 space-y-4 w-full relative z-10 text-left">
+        <div className="flex-1 space-y-3 sm:space-y-4 w-full relative z-10 text-left">
           {/* Desktop Only Name & Tag */}
           <div className="hidden lg:block">
             <div className="flex items-center gap-3">
@@ -421,43 +421,43 @@ export default function Profile() {
                 @{profileUser.username}
               </span>
             </div>
-            <p className="text-[10px] font-mono text-slate-500 mt-1">
+            <p className="text-[10px] font-mono text-slate-400 mt-1">
               MEMBER SINCE {new Date(profileUser.created_at).toLocaleDateString()}
             </p>
           </div>
 
           {/* Bio */}
-          <p className="text-xs md:text-sm text-slate-300 leading-relaxed border-l-2 border-[#e50914] pl-3 italic bg-black/25 py-2 pr-3 rounded-r-lg">
+          <p className="text-xs text-slate-300 leading-relaxed border-l-2 border-[#e50914] pl-3 italic bg-black/40 py-1.5 sm:py-2 pr-3 rounded-r-lg">
             "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
           </p>
 
-          {/* Responsive 4-Stat Metric Pill Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
-            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
-              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Watch Time</span>
-              <span className="font-mono font-black text-sm sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
+          {/* Responsive 4-Stat Metric Pill Grid (Compact & Sleek) */}
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
+            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
+              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Watch Time</span>
+              <span className="font-mono font-black text-xs sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
-              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Films</span>
-              <span className="font-mono font-black text-sm sm:text-base text-[#e50914]">{uniqueDiary.length}</span>
+            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
+              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Films</span>
+              <span className="font-mono font-black text-xs sm:text-base text-[#e50914]">{uniqueDiary.length}</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
-              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Reviews</span>
-              <span className="font-mono font-black text-sm sm:text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
+            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
+              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Reviews</span>
+              <span className="font-mono font-black text-xs sm:text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl text-center">
-              <span className="text-[9px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold">Followers</span>
-              <span className="font-mono font-black text-sm sm:text-base text-amber-400">{stats?.followers || 0}</span>
+            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
+              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Followers</span>
+              <span className="font-mono font-black text-xs sm:text-base text-amber-400">{stats?.followers || 0}</span>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 sm:gap-2.5 flex-wrap pt-1">
+          <div className="flex gap-2 flex-wrap pt-0.5">
             {!isOwnProfile && currentUser && (
               <button
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
-                className={isFollowing ? 'btn-secondary text-xs px-5 py-2.5 w-full sm:w-auto' : 'btn-primary text-xs px-5 py-2.5 w-full sm:w-auto font-bold'}
+                className={isFollowing ? 'btn-secondary text-xs px-4 py-2 w-full sm:w-auto' : 'glass-btn-red text-xs px-5 py-2 w-full sm:w-auto font-bold rounded-xl'}
               >
                 {isFollowing ? 'Unfollow' : 'Follow Cinephile'}
               </button>
@@ -465,12 +465,12 @@ export default function Profile() {
 
             {isOwnProfile && (
               <>
-                <button onClick={openEditModal} className="btn-primary text-xs px-4 py-2.5 flex items-center justify-center gap-1.5 flex-1 sm:flex-none font-bold shadow-md">
+                <button onClick={openEditModal} className="glass-btn-red text-xs px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 flex-1 sm:flex-none font-bold shadow-md cursor-pointer">
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
                 </button>
 
-                <button onClick={handleExportData} className="btn-secondary text-xs px-4 py-2.5 flex items-center justify-center gap-1.5 text-[#ff2e3b] border-[#e50914]/30 flex-1 sm:flex-none">
+                <button onClick={handleExportData} className="px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 flex-1 sm:flex-none cursor-pointer transition-colors">
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Archive</span>
                 </button>
@@ -480,15 +480,15 @@ export default function Profile() {
         </div>
 
         {/* Rating Distribution Histogram Bento Card */}
-        <div className="border border-white/8 bg-black/40 p-3.5 sm:p-4 rounded-2xl w-full lg:w-60 space-y-2 sm:space-y-3 shrink-0 shadow-lg relative z-10">
-          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-1.5">
+        <div className="border border-white/8 bg-black/50 p-3 sm:p-4 rounded-2xl w-full lg:w-60 space-y-2 shrink-0 shadow-lg relative z-10">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-1">
             Rating Distribution
           </span>
 
-          <div className="flex items-end justify-between h-20 sm:h-24 gap-1.5 sm:gap-2 pt-1 px-1">
+          <div className="flex items-end justify-between h-14 sm:h-20 gap-1.5 pt-1 px-1">
             {[1, 2, 3, 4, 5].map((star) => {
               const count = distMap[star] || 0;
-              const heightPct = Math.max(12, Math.round((count / maxCount) * 100));
+              const heightPct = Math.max(15, Math.round((count / maxCount) * 100));
               return (
                 <div key={star} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                   <div
@@ -505,29 +505,29 @@ export default function Profile() {
       </div>
 
       {/* ================= CINEPHILE BADGES SHOWCASE ================= */}
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
           Cinephile Badges & Milestones
         </h3>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {badges.map((b) => {
             const Icon = b.icon;
             return (
               <div
                 key={b.title}
-                className={`p-3 sm:p-3.5 border rounded-2xl flex items-center gap-2.5 sm:gap-3 transition-all ${
+                className={`p-2.5 sm:p-3.5 border rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 transition-all ${
                   b.unlocked
-                    ? 'bg-[#121216] border-[#e50914]/30 text-slate-100 shadow-[0_0_15px_rgba(229,9,20,0.15)]'
-                    : 'bg-[#08080a] border-white/5 text-slate-500 opacity-40'
+                    ? 'bg-[#121216]/95 backdrop-blur-md border-[#e50914]/40 text-slate-100 shadow-[0_0_15px_rgba(229,9,20,0.15)]'
+                    : 'bg-[#121216]/80 backdrop-blur-md border-white/8 text-slate-400'
                 }`}
               >
-                <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/15 text-[#ff4d5a] border-[#e50914]/30' : 'bg-black/30 border-white/5'}`}>
+                <div className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40 shadow-inner' : 'bg-white/5 border-white/10 text-slate-500'}`}>
                   <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-display font-bold text-[11px] sm:text-xs block truncate">{b.title}</span>
-                  <span className="font-mono text-[9px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
+                  <span className="font-display font-bold text-[11px] sm:text-xs block truncate text-slate-200">{b.title}</span>
+                  <span className="font-mono text-[8.5px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
                 </div>
               </div>
             );
@@ -537,11 +537,11 @@ export default function Profile() {
 
       {/* ================= PINNED REEL DISCOVERIES ================= */}
       {topMovieIds.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4 pt-1">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3.5 pt-0.5">
             {topMovieIds.map((mId, idx) => (
               <PolaroidCard key={mId} movieId={mId} angle={rotations[idx % rotations.length]} />
             ))}
@@ -553,17 +553,17 @@ export default function Profile() {
       <GlassSurface
         width="100%"
         height="auto"
-        borderRadius={20}
-        backgroundOpacity={0.05}
-        blur={12}
-        borderOpacity={0.12}
-        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
+        borderRadius={24}
+        backgroundOpacity={0.12}
+        blur={16}
+        borderOpacity={0.18}
+        className="p-1 sm:p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)] w-full sm:w-fit"
       >
-        <div className="flex select-none overflow-x-auto gap-1 sm:gap-1.5 scrollbar-none py-0.5 px-0.5">
+        <div className="flex select-none overflow-x-auto gap-1.5 sm:gap-2 scrollbar-none py-0.5 px-1 w-full touch-pan-x">
           <button
             onClick={() => setActiveTab('diary')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'diary' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
+            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+              activeTab === 'diary' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <Film className="w-3.5 h-3.5" />
@@ -571,8 +571,8 @@ export default function Profile() {
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'reviews' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
+            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+              activeTab === 'reviews' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <MessageSquare className="w-3.5 h-3.5" />
@@ -580,8 +580,8 @@ export default function Profile() {
           </button>
           <button
             onClick={() => setActiveTab('lists')}
-            className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'lists' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
+            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+              activeTab === 'lists' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <FolderPlus className="w-3.5 h-3.5" />
@@ -590,8 +590,8 @@ export default function Profile() {
           {isOwnProfile && (
             <button
               onClick={() => setActiveTab('watchlist')}
-              className={`px-3 sm:px-4 py-1.5 sm:py-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-                activeTab === 'watchlist' ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' : 'text-slate-300 hover:text-white hover:bg-white/5'
+              className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
+                activeTab === 'watchlist' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
               }`}
             >
               <Bookmark className="w-3.5 h-3.5" />

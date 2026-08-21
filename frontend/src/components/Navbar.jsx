@@ -188,14 +188,6 @@ export default function Navbar() {
 
           {/* Column 3: Right Search & Actions (Right-Aligned in its Column) */}
           <div className="flex items-center justify-end gap-2 sm:gap-2.5">
-            {/* Mobile Header Quick Search Button */}
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="flex sm:hidden items-center justify-center p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 shadow-sm transition-all cursor-pointer"
-              aria-label="Open Search Vault"
-            >
-              <Search className="w-4 h-4 text-[#e50914]" />
-            </button>
 
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
