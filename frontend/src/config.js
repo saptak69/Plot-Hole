@@ -1,8 +1,11 @@
-export const API_URL = import.meta.env.VITE_API_URL || (
+const rawApiUrl = (import.meta.env.VITE_API_URL || (
   typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:5000/api`
     : 'http://localhost:5000/api'
-);
+)).trim().replace(/\/+$/, '');
+
+// Ensure /api endpoint suffix is always present
+export const API_URL = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
 
 // Helper to get image URLs
