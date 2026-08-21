@@ -103,7 +103,7 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full btn-primary py-3 text-xs flex items-center justify-center gap-2 shadow-lg font-display font-black uppercase tracking-wider cursor-pointer"
+                    className="w-full glass-btn-red py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg font-display font-black uppercase tracking-wider cursor-pointer"
                   >
                     <span>{loading ? 'Authenticating...' : 'Sign In to PlotHole'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />

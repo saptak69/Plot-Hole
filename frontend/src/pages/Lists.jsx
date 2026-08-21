@@ -230,7 +230,7 @@ export default function ListsPage() {
         {user && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary py-2.5 px-5 text-xs flex items-center justify-center gap-2 self-start sm:self-auto font-bold shadow-md cursor-pointer"
+            className="glass-btn-red py-2.5 px-5 rounded-xl text-xs flex items-center justify-center gap-2 self-start sm:self-auto font-display font-black uppercase tracking-wider shadow-md cursor-pointer"
           >
             <ListPlus className="w-4 h-4" />
             <span>Create New List</span>
@@ -242,19 +242,19 @@ export default function ListsPage() {
       <GlassSurface
         width="auto"
         height="auto"
-        borderRadius={20}
-        backgroundOpacity={0.05}
-        blur={12}
-        borderOpacity={0.12}
-        className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
+        borderRadius={24}
+        backgroundOpacity={0.12}
+        blur={16}
+        borderOpacity={0.18}
+        className="p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)] w-full sm:w-fit"
       >
-        <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
+        <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none select-none px-1 py-0.5">
           <button
             onClick={() => setActiveFilter('all')}
-            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeFilter === 'all'
-                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                : 'text-slate-300 hover:text-white hover:bg-white/5'
+                ? 'glass-btn-red'
+                : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <FolderPlus className="w-3.5 h-3.5" />
@@ -263,10 +263,10 @@ export default function ListsPage() {
 
           <button
             onClick={() => setActiveFilter('myLists')}
-            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeFilter === 'myLists'
-                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                : 'text-slate-300 hover:text-white hover:bg-white/5'
+                ? 'glass-btn-red'
+                : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -275,10 +275,10 @@ export default function ListsPage() {
 
           <button
             onClick={() => setActiveFilter('curated')}
-            className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+            className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeFilter === 'curated'
-                ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                : 'text-slate-300 hover:text-white hover:bg-white/5'
+                ? 'glass-btn-red'
+                : 'text-slate-300 hover:text-white hover:bg-white/8'
             }`}
           >
             <Trophy className="w-3.5 h-3.5" />
@@ -294,7 +294,7 @@ export default function ListsPage() {
           <p className="font-sans text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
             Create custom ranked movie lists, marathon watchlists, and favorite director picks to showcase on your profile.
           </p>
-          <Link to="/login" className="btn-primary inline-block py-2.5 px-6 text-xs font-bold">
+          <Link to="/login" className="glass-btn-red inline-block py-2.5 px-6 rounded-xl text-xs font-display font-black uppercase tracking-wider">
             Sign In Now
           </Link>
         </div>
@@ -307,7 +307,7 @@ export default function ListsPage() {
           </p>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="btn-primary py-2.5 px-6 text-xs font-bold"
+            className="glass-btn-red py-2.5 px-6 rounded-xl text-xs font-display font-black uppercase tracking-wider cursor-pointer"
           >
             Create Your First List
           </button>

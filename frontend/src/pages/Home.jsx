@@ -106,72 +106,74 @@ export default function Home({ onOpenPerson }) {
         )}
       </div>
 
-      {/* Symmetrical Category Navigation Rail with GlassSurface */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 mb-8 relative z-10">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <GlassSurface
-            width="auto"
-            height="auto"
-            borderRadius={20}
-            backgroundOpacity={0.05}
-            blur={12}
-            borderOpacity={0.12}
-            className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)]"
-          >
-            <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
-              <button
-                onClick={() => setSelectedCategory('trending')}
-                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  selectedCategory === 'trending'
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Flame className="w-3.5 h-3.5" />
-                <span>Trending Cinema</span>
-              </button>
+      {/* Symmetrical Category Navigation Rail with GlassSurface (Fully Mobile-Optimized) */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-12 mb-8 relative z-10">
+        <div className="flex items-center justify-between gap-3 sm:gap-4">
+          <div className="w-full sm:w-auto overflow-hidden">
+            <GlassSurface
+              width="100%"
+              height="auto"
+              borderRadius={24}
+              backgroundOpacity={0.12}
+              blur={16}
+              borderOpacity={0.18}
+              className="p-1 sm:p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)]"
+            >
+              <div className="flex gap-1.5 sm:gap-2 overflow-x-auto whitespace-nowrap scrollbar-none select-none px-1 py-0.5 w-full touch-pan-x">
+                <button
+                  onClick={() => setSelectedCategory('trending')}
+                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+                    selectedCategory === 'trending'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
+                  }`}
+                >
+                  <Flame className="w-3.5 h-3.5" />
+                  <span>Trending Cinema</span>
+                </button>
 
-              <button
-                onClick={() => setSelectedCategory('topRated')}
-                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  selectedCategory === 'topRated'
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Trophy className="w-3.5 h-3.5" />
-                <span>Hall of Fame</span>
-              </button>
+                <button
+                  onClick={() => setSelectedCategory('topRated')}
+                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+                    selectedCategory === 'topRated'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
+                  }`}
+                >
+                  <Trophy className="w-3.5 h-3.5" />
+                  <span>Hall of Fame</span>
+                </button>
 
-              <button
-                onClick={() => setSelectedCategory('upcoming')}
-                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  selectedCategory === 'upcoming'
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Film className="w-3.5 h-3.5" />
-                <span>In Theaters</span>
-              </button>
+                <button
+                  onClick={() => setSelectedCategory('upcoming')}
+                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+                    selectedCategory === 'upcoming'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
+                  }`}
+                >
+                  <Film className="w-3.5 h-3.5" />
+                  <span>In Theaters</span>
+                </button>
 
-              <button
-                onClick={() => setSelectedCategory('tv')}
-                className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                  selectedCategory === 'tv'
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Tv className="w-3.5 h-3.5" />
-                <span>Acclaimed Series</span>
-              </button>
-            </div>
-          </GlassSurface>
+                <button
+                  onClick={() => setSelectedCategory('tv')}
+                  className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 text-[11px] sm:text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+                    selectedCategory === 'tv'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
+                  }`}
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                  <span>Acclaimed Series</span>
+                </button>
+              </div>
+            </GlassSurface>
+          </div>
 
           <Link
             to="/search?q="
-            className="hidden sm:flex items-center gap-1.5 font-mono text-xs font-bold text-slate-400 hover:text-[#e50914] transition-colors uppercase tracking-wider"
+            className="hidden md:flex items-center gap-1.5 font-mono text-xs font-bold text-slate-400 hover:text-[#e50914] transition-colors uppercase tracking-wider shrink-0"
           >
             <span>Explore Vault</span>
             <ArrowRight className="w-3.5 h-3.5" />

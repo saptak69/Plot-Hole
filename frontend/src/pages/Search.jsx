@@ -118,7 +118,7 @@ export default function Search() {
           )}
           <button
             type="submit"
-            className="btn-primary absolute right-1.5 py-1.5 px-4 text-xs font-mono font-bold uppercase"
+            className="glass-btn-red absolute right-1.5 py-1.5 px-4 rounded-xl text-xs font-mono font-bold uppercase"
           >
             Search
           </button>
@@ -148,19 +148,19 @@ export default function Search() {
         <GlassSurface
           width="auto"
           height="auto"
-          borderRadius={20}
-          backgroundOpacity={0.05}
-          blur={12}
-          borderOpacity={0.12}
-          className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)] w-full sm:w-fit"
+          borderRadius={24}
+          backgroundOpacity={0.12}
+          blur={16}
+          borderOpacity={0.18}
+          className="p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)] w-full sm:w-fit"
         >
-          <div className="flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none select-none">
+          <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none select-none px-1 py-0.5">
             <button
               onClick={() => setActiveTab('all')}
-              className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'all'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  ? 'glass-btn-red'
+                  : 'text-slate-300 hover:text-white hover:bg-white/8'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -168,10 +168,10 @@ export default function Search() {
             </button>
             <button
               onClick={() => setActiveTab('movies')}
-              className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'movies'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  ? 'glass-btn-red'
+                  : 'text-slate-300 hover:text-white hover:bg-white/8'
               }`}
             >
               <Film className="w-3.5 h-3.5" />
@@ -179,10 +179,10 @@ export default function Search() {
             </button>
             <button
               onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'users'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+                  ? 'glass-btn-red'
+                  : 'text-slate-300 hover:text-white hover:bg-white/8'
               }`}
             >
               <Users className="w-3.5 h-3.5" />

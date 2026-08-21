@@ -60,6 +60,17 @@
    ============================================================ */
 * {
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a, button {
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+a:focus, button:focus,
+a:focus-visible, button:focus-visible {
+  outline: none;
 }
 
 html {

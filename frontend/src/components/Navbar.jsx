@@ -137,24 +137,24 @@ export default function Navbar() {
             <Logo size="sm" onClick={handleLinkClick} />
           </div>
 
-          {/* Column 2: Exact Dead-Center Navigation Links (100% True Symmetry) */}
+          {/* Column 2: Exact Dead-Center Navigation Links (Wider & Ultra-Transparent Liquid Glass) */}
           <div className="hidden md:flex items-center justify-center">
             <GlassSurface
               width="auto"
               height="auto"
-              borderRadius={20}
-              backgroundOpacity={0.05}
-              blur={12}
-              borderOpacity={0.12}
-              className="p-1 shadow-[0_8px_32px_rgba(0,0,0,0.6),0_0_15px_rgba(229,9,20,0.04)]"
+              borderRadius={24}
+              backgroundOpacity={0.12}
+              blur={16}
+              borderOpacity={0.18}
+              className="p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)]"
             >
-              <nav className="flex items-center gap-1 sm:gap-1.5 px-1 py-0.5">
+              <nav className="flex items-center gap-1.5 sm:gap-2 px-2 py-0.5">
                 <Link
                   to="/"
-                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
+                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                     isActive('/')
-                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
                   }`}
                 >
                   <Compass className="w-3.5 h-3.5" />
@@ -162,10 +162,10 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/social"
-                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
+                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                     isActive('/social')
-                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
                   }`}
                 >
                   <Users className="w-3.5 h-3.5" />
@@ -173,10 +173,10 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/lists"
-                  className={`px-3.5 lg:px-4 py-1.5 lg:py-2 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 lg:gap-2 shrink-0 ${
+                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
                     isActive('/lists')
-                      ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]'
-                      : 'text-slate-300 hover:text-white hover:bg-white/5'
+                      ? 'glass-btn-red'
+                      : 'text-slate-300 hover:text-white hover:bg-white/8'
                   }`}
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
@@ -269,7 +269,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   to="/signup"
-                  className="btn-primary py-1.5 px-3.5 text-xs font-black uppercase tracking-wider shadow-md whitespace-nowrap"
+                  className="glass-btn-red py-1.5 px-4 rounded-xl text-xs font-display font-black uppercase tracking-wider shadow-md whitespace-nowrap"
                 >
                   Sign Up
                 </Link>
@@ -295,7 +295,7 @@ export default function Navbar() {
               to="/"
               className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
                 isActive('/')
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -307,7 +307,7 @@ export default function Navbar() {
               onClick={() => setIsSearchModalOpen(true)}
               className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
                 isActive('/search') || isSearchModalOpen
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -319,7 +319,7 @@ export default function Navbar() {
               to="/social"
               className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
                 isActive('/social')
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -331,7 +331,7 @@ export default function Navbar() {
               to="/lists"
               className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
                 isActive('/lists')
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
                   : 'text-slate-300 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -344,7 +344,7 @@ export default function Navbar() {
                 to={`/profile/${user.username}`}
                 className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
                   isActive(`/profile/${user.username}`)
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff2e3b] text-white shadow-[0_0_12px_rgba(229,9,20,0.4)]'
+                    ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >

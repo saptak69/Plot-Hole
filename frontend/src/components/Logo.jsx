@@ -362,7 +362,7 @@ export default function Logo({
       {variant !== 'mark' && (
         <div className="flex flex-col text-left">
           <span className={`font-display font-black tracking-tight text-white flex items-center leading-none ${textSizes[size] || textSizes.md}`}>
-            PLOT<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#e50914] via-[#ff2e3b] to-[#ffb800] ml-0.5">HOLE</span>
+            PLOTHOLE
           </span>
           {showTagline && (
             <span className={`font-mono text-slate-400 tracking-wider uppercase mt-1 font-bold ${taglineSizes[size] || taglineSizes.md}`}>
@@ -376,12 +376,25 @@ export default function Logo({
 
   if (to) {
     return (
-      <Link to={to} onClick={onClick} className="inline-flex items-center no-underline focus-visible:outline-none">
+      <Link
+        to={to}
+        onClick={onClick}
+        className="inline-flex items-center no-underline outline-none focus:outline-none focus:ring-0 focus-visible:outline-none ring-0 border-none select-none"
+        style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+      >
         {Content}
       </Link>
     );
   }
 
-  return <div onClick={onClick}>{Content}</div>;
+  return (
+    <div
+      onClick={onClick}
+      className="inline-flex items-center outline-none focus:outline-none border-none select-none"
+      style={{ outline: 'none', border: 'none', boxShadow: 'none' }}
+    >
+      {Content}
+    </div>
+  );
 }
 
