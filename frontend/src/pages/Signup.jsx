@@ -47,14 +47,14 @@ export default function Signup() {
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={28}
-          backgroundOpacity={0.72}
-          blur={20}
+          borderRadius={32}
+          backgroundOpacity={0.78}
+          blur={24}
           borderOpacity={0.16}
           frosted={true}
           className="shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_35px_rgba(229,9,20,0.12)]"
         >
-          <div className="p-6 sm:p-8 space-y-6 w-full">
+          <div className="p-6 sm:p-9 space-y-6 w-full">
             {/* Header */}
             <div className="text-center pb-2 space-y-2 relative">
               <div className="flex justify-center mb-3">
@@ -63,7 +63,7 @@ export default function Signup() {
               <h2 className="text-2xl md:text-3xl font-display font-black uppercase text-white tracking-tight">
                 Join PlotHole
               </h2>
-              <p className="text-xs text-slate-200 font-medium font-sans">
+              <p className="text-xs text-slate-300 font-normal font-sans">
                 Log movies, share verdicts, and mind the gap in cinema
               </p>
             </div>
@@ -79,7 +79,7 @@ export default function Signup() {
 
               <form onSubmit={handleSubmit} className="space-y-4 text-left font-sans">
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-black uppercase text-slate-200 tracking-wider">
+                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
                     Username
                   </label>
                   <div className="relative">
@@ -88,7 +88,7 @@ export default function Signup() {
                       required
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/15 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-[#e50914] focus:bg-black/80 transition-all placeholder:text-slate-500"
+                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
                       placeholder="cinephile_alias"
                     />
                     <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -96,7 +96,7 @@ export default function Signup() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-black uppercase text-slate-200 tracking-wider">
+                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
                     Email Address
                   </label>
                   <div className="relative">
@@ -105,7 +105,7 @@ export default function Signup() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/15 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-[#e50914] focus:bg-black/80 transition-all placeholder:text-slate-500"
+                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
                       placeholder="name@domain.com"
                     />
                     <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -113,7 +113,7 @@ export default function Signup() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-black uppercase text-slate-200 tracking-wider">
+                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
                     Password (Min 6 characters)
                   </label>
                   <div className="relative">
@@ -122,7 +122,7 @@ export default function Signup() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/15 px-4 py-3 pl-10 text-xs rounded-xl focus:outline-none focus:border-[#e50914] focus:bg-black/80 transition-all placeholder:text-slate-500"
+                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
                       placeholder="••••••••"
                     />
                     <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -133,7 +133,7 @@ export default function Signup() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full glass-btn-red py-3 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg font-display font-black uppercase tracking-wider cursor-pointer"
+                    className="w-full glass-btn-red py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg font-display font-bold uppercase tracking-wider cursor-pointer"
                   >
                     <span>{loading ? 'Creating Account...' : 'Join PlotHole Free'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -141,9 +141,9 @@ export default function Signup() {
                 </div>
               </form>
 
-              <p className="text-center text-xs text-slate-300 pt-4 border-t border-white/10 font-sans">
+              <p className="text-center text-xs text-slate-400 pt-4 border-t border-white/10 font-sans">
                 Already have an account?{' '}
-                <Link to="/login" className="text-[#ff4d5a] hover:text-[#ffb800] font-bold font-mono uppercase tracking-wide transition-colors">
+                <Link to="/login" className="text-[#ff4d5a] hover:text-white font-bold font-display uppercase tracking-wider transition-colors">
                   Sign In here
                 </Link>
               </p>

@@ -35,43 +35,43 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
     <GlassSurface
       width="100%"
       height="auto"
-      borderRadius={28}
-      backgroundOpacity={0.35}
-      blur={12}
-      borderOpacity={0.12}
-      className="shadow-[0_12px_36px_rgba(0,0,0,0.7),0_0_20px_rgba(229,9,20,0.04)] overflow-hidden"
+      borderRadius={32}
+      backgroundOpacity={0.4}
+      blur={20}
+      borderOpacity={0.14}
+      className="shadow-[0_20px_50px_rgba(0,0,0,0.85),0_0_25px_rgba(229,9,20,0.06)] overflow-hidden"
     >
-      <div className="p-6 md:p-8 flex flex-col lg:flex-row items-center justify-between gap-8 w-full text-left">
+      <div className="p-6 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 w-full text-left">
         {/* Left info column */}
-        <div className="text-left space-y-4 max-w-md">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e50914]/15 border border-[#e50914]/30 text-[#ff4d5a] font-mono text-[11px] font-black uppercase tracking-widest shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+        <div className="text-left space-y-4 max-w-md w-full">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#e50914]/12 border border-[#e50914]/30 text-[#ff4d5a] font-mono text-[11px] font-semibold uppercase tracking-wider shadow-sm">
             <Film className="w-3.5 h-3.5 text-[#ff4d5a]" />
-            <span>Cinephile Deck // Blind Pick</span>
+            <span>Mystery Spotlight // Blind Pick</span>
           </div>
 
-          <h3 className="font-display font-black text-2xl md:text-3xl uppercase tracking-tight text-white">
+          <h3 className="font-display font-black text-2xl sm:text-3xl tracking-tight text-white leading-tight">
             {movieTitle}
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-100 font-medium line-clamp-3 leading-relaxed font-sans">
+          <p className="text-xs sm:text-sm text-slate-300 font-sans line-clamp-3 leading-relaxed">
             {activeMovie.overview || "A compelling cinematic journey through timeless storytelling and visual mastery."}
           </p>
 
-          <div className="flex items-center gap-4 pt-1">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/40 border border-white/10 font-mono text-xs text-[#ffb800] font-bold">
+          <div className="flex items-center gap-3 pt-1">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-black/50 backdrop-blur-md border border-white/10 font-mono text-xs text-[#ffb800] font-bold">
               <Star className="w-3.5 h-3.5 fill-[#ffb800] text-[#ffb800]" />
               <span>{rating} TMDB</span>
             </div>
 
-            <span className="text-xs font-mono text-slate-500">
+            <span className="text-xs font-mono text-slate-400">
               Card {activeIdx + 1} of {cards.length}
             </span>
           </div>
 
-          <div className="flex items-center gap-3 pt-3">
+          <div className="flex flex-wrap items-center gap-3 pt-3">
             <Link
               to={`/media/${mediaType}/${activeMovie.id}`}
-              className="btn-primary px-5 py-2.5 text-xs font-mono font-bold uppercase flex items-center gap-2 shadow-md"
+              className="btn-primary px-5 py-2.5 text-xs font-display font-bold uppercase tracking-wider flex items-center gap-2 shadow-md"
             >
               <Eye className="w-4 h-4" />
               <span>Explore Film</span>
@@ -79,7 +79,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
 
             <button
               onClick={handleNext}
-              className="btn-secondary px-4 py-2.5 text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer"
+              className="btn-secondary px-4 py-2.5 text-xs font-display font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               <span>Next Card</span>
@@ -88,7 +88,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
         </div>
 
         {/* Right Stack Cards Visual */}
-        <div className="relative w-64 h-88 cursor-pointer select-none" onClick={handleNext}>
+        <div className="relative w-56 h-80 sm:w-64 sm:h-92 cursor-pointer select-none mx-auto lg:mx-0 my-4" onClick={handleNext}>
           {cards.map((movie, index) => {
             const offset = (index - activeIdx + cards.length) % cards.length;
             if (offset > 3) return null; // Show top 4 layers
@@ -102,7 +102,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
             return (
               <div
                 key={movie.id}
-                className="absolute inset-0 rounded-2xl overflow-hidden border border-white/15 shadow-2xl transition-all duration-400 ease-out bg-slate-900"
+                className="absolute inset-0 rounded-2xl overflow-hidden border border-white/15 shadow-2xl transition-all duration-300 ease-out bg-slate-900"
                 style={{
                   transform: `translate3d(0, ${translateYs[offset]}px, 0) rotate(${rotations[offset]}deg) scale(${scales[offset]})`,
                   zIndex: 10 - offset,
@@ -114,7 +114,7 @@ export default function MovieStack({ movies = [], title = 'Cinephile Mystery Dec
                   alt={movie.title || movie.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent pointer-events-none" />
                 
                 {offset === 0 && (
                   <div className="absolute bottom-3 inset-x-3 text-left">

@@ -57,19 +57,19 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
+    <div className="fixed inset-0 z-[1000] bg-black/80 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <div 
-        className="w-full max-w-4xl rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
+        className="w-full max-w-4xl rounded-3xl overflow-hidden border border-white/14 bg-[#121218]/95 text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.12)]"
         style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {/* Title bar */}
-        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
+        <div className="flex justify-between items-center px-6 py-4.5 bg-white/5 border-b border-white/8">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+            <div className="w-8 h-8 rounded-2xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff4d5a] shadow-sm">
               <Play className="w-4 h-4 fill-[#e50914] ml-0.5" />
             </div>
             <div>
-              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block truncate max-w-lg text-left">
+              <span className="font-display font-black text-sm text-slate-100 uppercase tracking-wide block truncate max-w-lg text-left">
                 {title || 'Cinema Preview'}
               </span>
               <span className="font-mono text-[10px] text-slate-400 uppercase text-left block">Official Trailer</span>
@@ -93,15 +93,15 @@ export default function TrailerModal({ isOpen, onClose, movieId, mediaType = 'mo
           ) : error || !videoKey ? (
             <div className="text-center p-8 space-y-3 font-sans">
               <Film className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-              <p className="text-rose-400 font-bold text-sm font-display">NO DIRECT TRAILER STREAM AVAILABLE</p>
-              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              <p className="text-rose-400 font-black text-sm font-display tracking-wide">NO DIRECT TRAILER STREAM AVAILABLE</p>
+              <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed font-sans">
                 No YouTube trailer embed was found for this specific title. You can search directly on YouTube.
               </p>
               <a
                 href={`https://www.youtube.com/results?search_query=${encodeURIComponent((title || '') + ' official trailer')}`}
                 target="_blank"
                 rel="noreferrer"
-                className="btn-primary inline-flex items-center gap-2 text-xs py-2 px-5 mt-2 font-bold shadow-md"
+                className="btn-primary inline-flex items-center gap-2 text-xs py-2.5 px-6 mt-2 font-display font-bold uppercase tracking-wider rounded-2xl shadow-md"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
                 <span>Search on YouTube</span>

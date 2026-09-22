@@ -5,58 +5,60 @@
 @import "./components/FaultyTerminal.css";
 
 @theme {
-  --color-brand-bg: #08080a;
-  --color-brand-card: #121216;
-  --color-brand-card-hover: #1a1a22;
-  --color-brand-surface: rgba(18, 18, 22, 0.85);
+  --color-brand-bg: #08080b;
+  --color-brand-card: #101015;
+  --color-brand-card-hover: #171720;
+  --color-brand-surface: rgba(16, 16, 21, 0.8);
   --color-brand-border: rgba(255, 255, 255, 0.08);
-  --color-brand-border-glow: rgba(229, 9, 20, 0.4);
+  --color-brand-border-glow: rgba(255, 107, 0, 0.35);
   --color-brand-text: #f5f5f7;
-  --color-brand-text-muted: #a1a1aa;
+  --color-brand-text-muted: #94949e;
   --color-brand-heading: #ffffff;
 
-  /* Netflix Red & Cinema Scarlet Palette */
-  --color-brand-red-light: #ff2e3b;
+  /* Red, Orange & Charcoal Cinema Fire Palette */
   --color-brand-red: #e50914;
+  --color-brand-red-light: #ff3b47;
   --color-brand-red-dark: #b80710;
   --color-brand-red-glow: rgba(229, 9, 20, 0.4);
 
-  /* Cinema Gold & Amber Accents */
-  --color-amber-300: #fde047;
-  --color-amber-400: #ffb800;
-  --color-amber-500: #f59e0b;
-  --color-amber-glow: rgba(255, 184, 0, 0.3);
+  /* Sunset Molten Orange */
+  --color-brand-orange: #ff6b00;
+  --color-brand-orange-light: #ffa033;
+  --color-brand-orange-dark: #cc5500;
+  --color-brand-orange-glow: rgba(255, 107, 0, 0.35);
 
-  /* Prismatic Liquid Caustics & Glows */
-  --color-crimson-glow: #ff3b5c;
-  --color-gold-glow: #ffb800;
-  --color-platinum: #ffffff;
+  /* Charcoal Black Foundation */
+  --color-charcoal-950: #08080b;
+  --color-charcoal-900: #0e0e13;
+  --color-charcoal-850: #14141c;
+  --color-charcoal-800: #1c1c27;
+  --color-charcoal-700: #2a2a3a;
 
-  /* Rating Tier Specific Colors */
-  --color-tier-1: #ff3b5c; /* Bullshit - Crimson Flame */
-  --color-tier-2: #94a3b8; /* Meh - Titanium Slate */
-  --color-tier-3: #f59e0b; /* One-Time - Cinema Amber */
-  --color-tier-4: #e50914; /* Good - Netflix Red */
-  --color-tier-5: #ffffff; /* Pure Cinema - Luminous Gold & Platinum Trophy */
+  /* 4-Tier Sentiment Model Colors */
+  --color-tier-skip: #ff3b5c;      /* Skip - Rose Red */
+  --color-tier-timepass: #f59e0b;  /* Timepass - Cinema Amber */
+  --color-tier-goforit: #ff6b00;   /* Go For It - Sunset Flame Orange */
+  --color-tier-perfection: #e50914;/* Perfection - Pure Fiery Crimson */
 
   /* Typography */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Space Grotesk', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-syne: 'Syne', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-heading: 'Space Grotesk', sans-serif;
 
-  --radius-xs: 4px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
-  --radius-2xl: 24px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --radius-full: 9999px;
 }
 
+
 /* ============================================================
-   BASE RESETS & CINEMA CANVAS
+   BASE RESETS & APPLE-INSPIRED CINEMA CANVAS
    ============================================================ */
 * {
   box-sizing: border-box;
@@ -79,9 +81,9 @@ html {
 }
 
 body {
-  background-color: #08080a;
+  background-color: #070709;
   color: #f5f5f7;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
@@ -96,161 +98,89 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #08080a;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e1e24;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #e50914;
+  background: rgba(229, 9, 20, 0.7);
 }
 
 *:focus-visible {
-  outline: 2px solid #e50914 !important;
+  outline: 2px solid rgba(229, 9, 20, 0.7) !important;
   outline-offset: 2px !important;
 }
 
 /* ============================================================
-   EASINGS & TIMINGS
+   APPLE-GRADE EASINGS & TIMINGS
    ============================================================ */
 :root {
-  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
-  --ease-bounce-soft: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --ease-ios-spring: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-smooth-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
   
-  --duration-fast: 200ms;
-  --duration-medium: 350ms;
-  --duration-slow: 500ms;
+  --duration-fast: 180ms;
+  --duration-medium: 300ms;
+  --duration-slow: 450ms;
 }
 
 /* ============================================================
-   GLASSMORPHISM & SURFACE ELEVATION (TRANSPARENT OBSIDIAN)
+   VISIONOS & APPLE-GRADE FROSTED GLASSMORPHISM
    ============================================================ */
 .glass-panel {
-  background: rgba(14, 14, 18, 0.35);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.65), 0 0 15px -3px rgba(229, 9, 20, 0.08);
+  background: rgba(15, 15, 22, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 16px 40px -10px rgba(0, 0, 0, 0.75), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .glass-card {
-  background: rgba(16, 16, 22, 0.32);
-  backdrop-filter: blur(10px) saturate(140%);
-  -webkit-backdrop-filter: blur(10px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all var(--duration-fast) var(--ease-smooth-out);
+  background: rgba(16, 16, 24, 0.45);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 
+    0 10px 30px -8px rgba(0, 0, 0, 0.65), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: all var(--duration-medium) var(--ease-ios-spring);
 }
 
 .glass-card:hover {
-  background: rgba(22, 22, 30, 0.65);
+  background: rgba(24, 24, 34, 0.70);
   border-color: rgba(229, 9, 20, 0.45);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 32px -6px rgba(0, 0, 0, 0.8), 0 0 20px -4px rgba(229, 9, 20, 0.25);
+  transform: translateY(-3px);
+  box-shadow: 
+    0 20px 45px -10px rgba(0, 0, 0, 0.85), 
+    0 0 24px -4px rgba(229, 9, 20, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .glass-input {
-  background: rgba(10, 10, 14, 0.6);
+  background: rgba(12, 12, 16, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: #ffffff;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
   transition: all var(--duration-fast) var(--ease-smooth-out);
 }
 
 .glass-input:focus {
-  background: rgba(14, 14, 20, 0.85);
+  background: rgba(16, 16, 22, 0.88);
   border-color: #e50914;
-  box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.3);
-}
-
-/* Brutalist High-Visibility Typography Helpers */
-.font-brutalist {
-  font-family: var(--font-display);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
-}
-
-.font-brutalist-mono {
-  font-family: var(--font-mono);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  box-shadow: 
+    0 0 0 3px rgba(229, 9, 20, 0.25),
+    inset 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 /* ============================================================
-   CINEMA LIGHTING & ANIMATIONS
-   ============================================================ */
-
-/* Shimmer Chromium & Red Gold Text */
-@keyframes shimmer-text {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-.shimmer-text {
-  background: linear-gradient(90deg, #a1a1aa 0%, #ffffff 40%, #e50914 50%, #ffffff 60%, #a1a1aa 100%);
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer-text 4s linear infinite;
-}
-
-.red-shimmer-text {
-  background: linear-gradient(90deg, #e50914 0%, #ff2e3b 50%, #ffb800 100%);
-  background-size: 200% auto;
-  color: transparent;
-  -webkit-background-clip: text;
-  background-clip: text;
-  animation: shimmer-text 3s linear infinite;
-}
-
-/* Aurora Backdrop Mesh with Red & Amber Glow (GPU Optimized) */
-@keyframes aurora-pulse {
-  0%, 100% {
-    transform: translate3d(-50%, -50%, 0) scale(1);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate3d(-49%, -51%, 0) scale(1.05);
-    opacity: 0.6;
-  }
-}
-
-.aurora-glow {
-  position: absolute;
-  top: 25%;
-  left: 50%;
-  transform: translate3d(-50%, -50%, 0);
-  width: 95vw;
-  max-width: 1200px;
-  height: 550px;
-  background: radial-gradient(50% 50% at 50% 50%, rgba(229, 9, 20, 0.2) 0%, rgba(255, 184, 0, 0.1) 45%, rgba(184, 7, 16, 0.06) 75%, transparent 100%);
-  pointer-events: none;
-  animation: aurora-pulse 12s ease-in-out infinite;
-  will-change: transform, opacity;
-  contain: paint;
-}
-
-/* Subtle Film Texture (Optimized without SVG filter recalculation) */
-.film-grain {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 999;
-  opacity: 0.015;
-  background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.25) 100%);
-  contain: strict;
-}
-
-/* ============================================================
-   BUTTON DESIGNS (NETFLIX RED & CINEMA OBSIDIAN)
+   BUTTON DESIGNS (APPLE TACTILE + CINEMA SCARLET)
    ============================================================ */
 
 .btn-primary {
@@ -258,61 +188,172 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #e50914 0%, #ff2e3b 50%, #b80710 100%);
+  background: linear-gradient(135deg, #e50914 0%, #ff2e3b 50%, #c40812 100%);
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 
+    0 4px 18px -2px rgba(229, 9, 20, 0.45), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration-fast) var(--ease-ios-spring);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1.5px) scale(1.01);
+  background: linear-gradient(135deg, #ff2e3b 0%, #e50914 50%, #b80710 100%);
+  box-shadow: 
+    0 8px 26px -4px rgba(229, 9, 20, 0.65), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  filter: brightness(1.05);
+}
+
+.btn-primary:active {
+  transform: translateY(0) scale(0.98);
+  filter: brightness(0.95);
+  box-shadow: 0 2px 10px -2px rgba(229, 9, 20, 0.4);
+}
+
+.btn-fire {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #e50914 0%, #ff5500 50%, #ffa033 100%);
+  color: #ffffff;
+  font-weight: 700;
   font-family: var(--font-display);
   letter-spacing: 0.02em;
   border-radius: var(--radius-xl);
   border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 4px 20px -2px rgba(229, 9, 20, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 4px 20px -2px rgba(255, 107, 0, 0.45), 
+    0 0 16px -2px rgba(229, 9, 20, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all var(--duration-fast) var(--ease-smooth-out);
+  transition: all var(--duration-fast) var(--ease-ios-spring);
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #ff2e3b 0%, #e50914 50%, #b80710 100%);
-  box-shadow: 0 8px 30px -4px rgba(229, 9, 20, 0.7), inset 0 1px 0 #ffffff;
-  filter: brightness(1.08);
+.btn-fire:hover {
+  transform: translateY(-1.5px) scale(1.02);
+  background: linear-gradient(135deg, #ff2e3b 0%, #ff6b00 50%, #ffb833 100%);
+  box-shadow: 
+    0 8px 28px -4px rgba(255, 107, 0, 0.65), 
+    0 0 24px -2px rgba(229, 9, 20, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
-.btn-primary:active {
-  transform: translateY(0);
-  filter: brightness(0.95);
+.btn-fire:active {
+  transform: translateY(0) scale(0.98);
 }
+
+.text-gradient-fire {
+  background: linear-gradient(135deg, #ff3b47 0%, #ff6b00 55%, #ffa033 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-gradient-fire {
+  background: linear-gradient(135deg, #e50914 0%, #ff5500 50%, #ffa033 100%);
+}
+
+.bg-charcoal-card {
+  background: #101015;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.bg-charcoal-card:hover {
+  background: #16161f;
+  border-color: rgba(255, 107, 0, 0.35);
+}
+
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(22, 22, 28, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   color: #f5f5f7;
-  font-weight: 700;
+  font-weight: 600;
   font-family: var(--font-sans);
   border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 4px 16px -2px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-smooth-out);
+  transition: all var(--duration-fast) var(--ease-ios-spring);
 }
 
 .btn-secondary:hover {
-  background: rgba(30, 30, 38, 0.95);
-  color: #ff2e3b;
-  border-color: rgba(229, 9, 20, 0.45);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.75), 0 0 15px rgba(229, 9, 20, 0.2);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1.5px);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.65), 
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-/* Skeleton Loading Shimmer */
+.btn-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: rgba(225, 29, 72, 0.15);
+  color: #fb7185;
+  font-weight: 600;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(225, 29, 72, 0.35);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-ios-spring);
+}
+
+.btn-danger:hover {
+  background: rgba(225, 29, 72, 0.28);
+  color: #ffffff;
+  border-color: rgba(225, 29, 72, 0.6);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   SUBTLE 35MM FILM GRAIN
+   ============================================================ */
+.film-grain {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
+  background-size: 4px 4px;
+  contain: strict;
+}
+
+/* Skeleton Loading Shimmer (VisionOS Silver-Red) */
 .skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.02) 25%, rgba(229, 9, 20, 0.08) 50%, rgba(255, 255, 255, 0.02) 75%);
+  background: linear-gradient(
+    90deg, 
+    rgba(255, 255, 255, 0.03) 25%, 
+    rgba(229, 9, 20, 0.08) 50%, 
+    rgba(255, 255, 255, 0.03) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-loading 1.8s infinite;
 }
@@ -328,14 +369,14 @@ body {
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(14px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 @keyframes toast-slide-in {
   from {
     opacity: 0;
-    transform: translateY(6px) scale(0.98);
+    transform: translateY(8px) scale(0.96);
   }
   to {
     opacity: 1;
@@ -344,13 +385,13 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 250ms var(--ease-smooth-out) both;
+  animation: fade-in 220ms var(--ease-smooth-out) both;
 }
 
 .animate-fade-up {
-  animation: fade-up 350ms var(--ease-smooth-out) both;
+  animation: fade-up 280ms var(--ease-smooth-out) both;
 }
 
 .animate-toast-slick {
-  animation: toast-slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: toast-slide-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

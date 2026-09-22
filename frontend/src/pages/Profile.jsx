@@ -6,7 +6,11 @@ import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
+import MovieCard from '../components/MovieCard';
 import GlassSurface from '../components/GlassSurface';
+import GlassTabBar from '../components/GlassTabBar';
+import GlassModal from '../components/GlassModal';
+import GlassCard from '../components/GlassCard';
 
 function PolaroidCard({ movieId, angle, initialMovie }) {
   const { data: movie } = useQuery({
@@ -93,7 +97,7 @@ function DiaryMobileCard({ entry }) {
   const mediaType = movie?.media_type || entry.media_type || 'movie';
 
   return (
-    <div className="p-4 rounded-2xl border border-white/8 bg-[#121216] shadow-md space-y-3">
+    <div className="glass-card p-4 rounded-2xl shadow-md space-y-3">
       <div className="flex items-center gap-3">
         <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="shrink-0 w-14 h-20 rounded-xl overflow-hidden border border-white/10 bg-black shadow">
           <img
@@ -171,7 +175,7 @@ export default function Profile() {
     setIsEditModalOpen(true);
   };
 
-  const handleImageUpload = (e) => {
+  const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -384,80 +388,82 @@ export default function Profile() {
   ];
 
   return (
-    <div className="flex-1 max-w-7xl mx-auto px-3 sm:px-6 md:px-12 py-4 sm:py-6 md:py-10 text-left font-sans space-y-6 sm:space-y-8">
+    <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4 sm:py-6 md:py-10 font-sans space-y-6 sm:space-y-8 overflow-x-hidden">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
-      <div className="border border-white/10 bg-[#121216]/95 backdrop-blur-xl p-3.5 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden space-y-4 sm:space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#e50914]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-3xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8 w-full">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(229,9,20,0.12)_0%,transparent_70%)] pointer-events-none" />
 
-        {/* Mobile Top Row: Avatar + Name + Tag + Member Since */}
-        <div className="flex items-center gap-3.5 sm:gap-5 lg:block lg:shrink-0 relative z-10">
-          <div className="shrink-0 w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 border border-[#e50914]/40 rounded-2xl overflow-hidden bg-black shadow-xl ring-2 ring-[#e50914]/20">
+        {/* Mobile Top View: Centered Avatar + Name + Tag + Member Since */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6 lg:block lg:shrink-0 relative z-10 w-full lg:w-auto">
+          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-2xl border border-white/20 mx-auto sm:mx-0">
             <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
           </div>
 
-          <div className="min-w-0 flex-1 lg:hidden text-left space-y-0.5">
-            <h1 className="text-base sm:text-xl font-display font-black text-white truncate">
+          <div className="min-w-0 flex-1 lg:hidden space-y-1.5 flex flex-col items-center sm:items-start text-center sm:text-left w-full">
+            <h1 className="text-xl sm:text-2xl font-display font-black text-white truncate tracking-tight">
               {profileUser.display_name || profileUser.username}
             </h1>
-            <span className="inline-block text-[10px] sm:text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
-              @{profileUser.username}
-            </span>
-            <p className="text-[9px] font-mono text-slate-400 pt-0.5">
-              JOINED {new Date(profileUser.created_at).toLocaleDateString()}
-            </p>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <span className="inline-block text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+                @{profileUser.username}
+              </span>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
+                <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                <span>Joined {new Date(profileUser.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* User Identity & Stats & Bio */}
-        <div className="flex-1 space-y-3 sm:space-y-4 w-full relative z-10 text-left">
-          {/* Desktop Only Name & Tag */}
-          <div className="hidden lg:block">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-display font-black text-white">
-                {profileUser.display_name || profileUser.username}
-              </h1>
-              <span className="text-xs font-mono font-bold px-3 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
-                @{profileUser.username}
-              </span>
+        {/* Center / Main Bio Column */}
+        <div className="flex-1 space-y-4 min-w-0 relative z-10 w-full text-center sm:text-left">
+          <div className="hidden lg:flex lg:items-center lg:gap-3 flex-wrap">
+            <h1 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
+              {profileUser.display_name || profileUser.username}
+            </h1>
+            <span className="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+              @{profileUser.username}
+            </span>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono ml-auto">
+              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+              <span>Joined {new Date(profileUser.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}</span>
             </div>
-            <p className="text-[10px] font-mono text-slate-400 mt-1">
-              MEMBER SINCE {new Date(profileUser.created_at).toLocaleDateString()}
-            </p>
           </div>
 
-          {/* Bio */}
-          <p className="text-xs text-slate-300 leading-relaxed border-l-2 border-[#e50914] pl-3 italic bg-black/40 py-1.5 sm:py-2 pr-3 rounded-r-lg">
-            "{profileUser.bio || 'Cinephile exploring cinema timelines.'}"
+          {/* Bio text */}
+          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+            {profileUser.bio || 'Curating films and recording reviews on PlotHole.'}
           </p>
 
-          {/* Responsive 4-Stat Metric Pill Grid (Compact & Sleek) */}
-          <div className="grid grid-cols-4 gap-1.5 sm:gap-2.5">
-            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
-              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Watch Time</span>
-              <span className="font-mono font-black text-xs sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
+          {/* Responsive 4-Stat Metric Pill Grid (2x2 on Mobile, 4x1 on sm+) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full">
+            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center relative group">
+              <div className="absolute inset-0 z-10" title="Estimated based on average film runtime (2.1h) + time spent writing reviews (0.4h)" />
+              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Watch Time</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
-              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Films</span>
-              <span className="font-mono font-black text-xs sm:text-base text-[#e50914]">{uniqueDiary.length}</span>
+            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Films</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-white">{uniqueDiary.length}</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
-              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Reviews</span>
-              <span className="font-mono font-black text-xs sm:text-base text-[#ff2e3b]">{stats?.reviews || 0}</span>
+            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Reviews</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-[#ff4d5a]">{stats?.reviews || 0}</span>
             </div>
-            <div className="bg-white/5 border border-white/8 p-1.5 sm:p-2.5 rounded-xl text-center">
-              <span className="text-[8px] sm:text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Followers</span>
-              <span className="font-mono font-black text-xs sm:text-base text-amber-400">{stats?.followers || 0}</span>
+            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Followers</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-amber-400">{stats?.followers || 0}</span>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 flex-wrap pt-0.5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center sm:justify-start gap-2.5 pt-1 w-full">
             {!isOwnProfile && currentUser && (
               <button
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
-                className={isFollowing ? 'btn-secondary text-xs px-4 py-2 w-full sm:w-auto' : 'glass-btn-red text-xs px-5 py-2 w-full sm:w-auto font-bold rounded-xl'}
+                className={isFollowing ? 'btn-secondary text-xs px-4 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider' : 'glass-btn-red text-xs px-5 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider rounded-2xl'}
               >
                 {isFollowing ? 'Unfollow' : 'Follow Cinephile'}
               </button>
@@ -465,12 +471,12 @@ export default function Profile() {
 
             {isOwnProfile && (
               <>
-                <button onClick={openEditModal} className="glass-btn-red text-xs px-4 py-2 rounded-xl flex items-center justify-center gap-1.5 flex-1 sm:flex-none font-bold shadow-md cursor-pointer">
+                <button onClick={openEditModal} className="glass-btn-red text-xs px-4.5 py-2.5 rounded-2xl flex items-center justify-center gap-1.5 font-display font-bold uppercase tracking-wider shadow-md cursor-pointer w-full sm:w-auto">
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
                 </button>
 
-                <button onClick={handleExportData} className="px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 flex-1 sm:flex-none cursor-pointer transition-colors">
+                <button onClick={handleExportData} className="px-4.5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-1.5 text-slate-200 hover:text-white bg-white/6 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors font-display font-bold uppercase tracking-wider w-full sm:w-auto">
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Archive</span>
                 </button>
@@ -480,19 +486,19 @@ export default function Profile() {
         </div>
 
         {/* Rating Distribution Histogram Bento Card */}
-        <div className="border border-white/8 bg-black/50 p-3 sm:p-4 rounded-2xl w-full lg:w-60 space-y-2 shrink-0 shadow-lg relative z-10">
-          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#e50914] uppercase block border-b border-white/8 pb-1">
+        <div className="glass-card p-3.5 sm:p-4 rounded-3xl w-full lg:w-60 space-y-2 shrink-0 relative z-10 mx-auto lg:mx-0">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#ff4d5a] uppercase block border-b border-white/8 pb-1.5 text-center sm:text-left">
             Rating Distribution
           </span>
 
-          <div className="flex items-end justify-between h-14 sm:h-20 gap-1.5 pt-1 px-1">
+          <div className="flex items-end justify-between h-16 sm:h-20 gap-1.5 pt-1 px-1">
             {[1, 2, 3, 4, 5].map((star) => {
               const count = distMap[star] || 0;
               const heightPct = Math.max(15, Math.round((count / maxCount) * 100));
               return (
                 <div key={star} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                   <div
-                    className="w-full bg-gradient-to-t from-[#b80710] to-[#e50914] rounded-t transition-all hover:bg-[#ff2e3b]"
+                    className="w-full bg-gradient-to-t from-[#b80710] to-[#e50914] rounded-t-md transition-all hover:bg-[#ff3b47]"
                     style={{ height: `${heightPct}%` }}
                     title={`${count} films rated ${star} stars`}
                   />
@@ -506,28 +512,28 @@ export default function Profile() {
 
       {/* ================= CINEPHILE BADGES SHOWCASE ================= */}
       <div className="space-y-2.5">
-        <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
+        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 text-center sm:text-left">
           Cinephile Badges & Milestones
         </h3>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
           {badges.map((b) => {
             const Icon = b.icon;
             return (
               <div
                 key={b.title}
-                className={`p-2.5 sm:p-3.5 border rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 transition-all ${
+                className={`p-3 sm:p-4 rounded-2xl flex items-center gap-2.5 sm:gap-3 transition-all ${
                   b.unlocked
-                    ? 'bg-[#121216]/95 backdrop-blur-md border-[#e50914]/40 text-slate-100 shadow-[0_0_15px_rgba(229,9,20,0.15)]'
-                    : 'bg-[#121216]/80 backdrop-blur-md border-white/8 text-slate-400'
+                    ? 'glass-card border-[#e50914]/40 text-slate-100 shadow-[0_2px_14px_rgba(229,9,20,0.15)]'
+                    : 'glass-card opacity-60 text-slate-400'
                 }`}
               >
-                <div className={`p-1.5 sm:p-2.5 rounded-lg sm:rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40 shadow-inner' : 'bg-white/5 border-white/10 text-slate-500'}`}>
-                  <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <div className={`p-2 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40 shadow-inner' : 'bg-white/5 border-white/10 text-slate-500'}`}>
+                  <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-display font-bold text-[11px] sm:text-xs block truncate text-slate-200">{b.title}</span>
-                  <span className="font-mono text-[8.5px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
+                  <span className="font-display font-bold text-xs block truncate text-slate-200">{b.title}</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
                 </div>
               </div>
             );
@@ -538,10 +544,10 @@ export default function Profile() {
       {/* ================= PINNED REEL DISCOVERIES ================= */}
       {topMovieIds.length > 0 && (
         <div className="space-y-2.5">
-          <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 text-center sm:text-left">
             Pinned Reel Discoveries
           </h3>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 sm:gap-3.5 pt-0.5">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4 pt-0.5 justify-center justify-items-center">
             {topMovieIds.map((mId, idx) => (
               <PolaroidCard key={mId} movieId={mId} angle={rotations[idx % rotations.length]} />
             ))}
@@ -549,57 +555,20 @@ export default function Profile() {
         </div>
       )}
 
-      {/* ================= SLIDING PILL TABS BAR WITH TRANSPARENT GLASSSURFACE ================= */}
-      <GlassSurface
-        width="100%"
-        height="auto"
-        borderRadius={24}
-        backgroundOpacity={0.12}
-        blur={16}
-        borderOpacity={0.18}
-        className="p-1 sm:p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)] w-full sm:w-fit"
-      >
-        <div className="flex select-none overflow-x-auto gap-1.5 sm:gap-2 scrollbar-none py-0.5 px-1 w-full touch-pan-x">
-          <button
-            onClick={() => setActiveTab('diary')}
-            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'diary' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
-            }`}
-          >
-            <Film className="w-3.5 h-3.5" />
-            <span>Diary ({uniqueDiary.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('reviews')}
-            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'reviews' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
-            }`}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Reviews ({reviews.length})</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('lists')}
-            className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-              activeTab === 'lists' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
-            }`}
-          >
-            <FolderPlus className="w-3.5 h-3.5" />
-            <span>Lists ({userLists.length})</span>
-          </button>
-          {isOwnProfile && (
-            <button
-              onClick={() => setActiveTab('watchlist')}
-              className={`px-3.5 sm:px-4.5 py-2 sm:py-2.5 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-                activeTab === 'watchlist' ? 'glass-btn-red' : 'text-slate-300 hover:text-white hover:bg-white/8'
-              }`}
-            >
-              <Bookmark className="w-3.5 h-3.5" />
-              <span>Watchlist ({watchlist.length})</span>
-            </button>
-          )}
-        </div>
-      </GlassSurface>
+      {/* ================= AICANVAS REALISTIC LIQUID GLASS TAB BAR ================= */}
+      <div className="w-full overflow-x-auto scrollbar-none flex justify-center sm:justify-start">
+        <GlassTabBar
+          tabs={[
+            { id: 'diary', label: 'Diary', icon: Film, count: uniqueDiary.length },
+            { id: 'reviews', label: 'Reviews', icon: MessageSquare, count: reviews.length },
+            { id: 'lists', label: 'Lists', icon: FolderPlus, count: userLists.length },
+            ...(isOwnProfile ? [{ id: 'watchlist', label: 'Watchlist', icon: Bookmark, count: watchlist.length }] : [])
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="w-full sm:w-fit"
+        />
+      </div>
 
       {/* ================= TAB CONTENTS ================= */}
       <div>
@@ -609,7 +578,7 @@ export default function Profile() {
             {diaryLoading ? (
               <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : uniqueDiary.length === 0 ? (
-              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 Diary timeline is currently empty.
               </div>
             ) : (
@@ -622,7 +591,7 @@ export default function Profile() {
                 </div>
 
                 {/* Desktop Screen (>= md): Full Data Table */}
-                <div className="hidden md:block border border-white/8 rounded-3xl overflow-hidden shadow-2xl bg-[#121216]">
+                <div className="hidden md:block glass-panel rounded-3xl overflow-hidden shadow-2xl">
                   <table className="w-full text-xs text-left border-collapse font-sans">
                     <thead>
                       <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/8">
@@ -662,29 +631,26 @@ export default function Profile() {
             {reviewsLoading ? (
               <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING USER REVIEWS...</div>
             ) : reviews.length === 0 ? (
-              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 No user reviews written yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((rev) => (
-                  <div key={rev.id} className="border border-white/8 bg-[#121216] hover:border-[#e50914]/40 p-5 rounded-2xl space-y-3 shadow-md transition-all">
+                  <GlassCard key={rev.id} className="p-5 rounded-2xl space-y-3">
                     <div className="flex items-center justify-between border-b border-white/8 pb-3 gap-2">
-                      <div className="min-w-0">
-                        <span className="text-slate-400 text-[10px] font-mono uppercase block">Reviewed Film</span>
-                        <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-slate-100 hover:text-[#e50914] transition-colors block text-sm truncate" />
-                      </div>
+                      <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors line-clamp-1 truncate" />
                       <RatingBadge rating={rev.rating} size="xs" />
                     </div>
                     {rev.review_text && (
-                      <p className="text-xs md:text-sm text-slate-200 leading-relaxed font-sans bg-black/40 border border-white/5 p-3.5 rounded-xl italic">
+                      <p className="text-xs text-slate-300 italic font-sans leading-relaxed bg-black/40 p-3 rounded-xl border border-white/6">
                         "{rev.review_text}"
                       </p>
                     )}
-                    <span className="block text-[10px] font-mono text-slate-500">
-                      Reviewed: {new Date(rev.created_at).toLocaleDateString()}
+                    <span className="text-[10px] font-mono text-slate-400 block">
+                      Logged {new Date(rev.created_at).toLocaleDateString()}
                     </span>
-                  </div>
+                  </GlassCard>
                 ))}
               </div>
             )}
@@ -697,32 +663,28 @@ export default function Profile() {
             {listsLoading ? (
               <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING CUSTOM LISTS...</div>
             ) : userLists.length === 0 ? (
-              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
                 No custom lists created yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userLists.map((lst) => (
-                  <div key={lst.id} className="border border-white/8 p-5 bg-[#121216] hover:border-[#e50914]/40 rounded-2xl flex flex-col justify-between transition-all shadow-md">
-                    <div>
+                  <GlassCard key={lst.id} className="p-5 space-y-3 rounded-2xl flex flex-col justify-between">
+                    <div className="space-y-1">
+                      <span className="px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 text-[10px] font-mono uppercase font-semibold">
+                        Collection
+                      </span>
                       <Link to={`/lists/${lst.id}`}>
-                        <h3 className="font-display font-bold text-base md:text-lg text-slate-100 hover:text-[#e50914] transition-colors">
+                        <h4 className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors line-clamp-1 pt-1">
                           {lst.title}
-                        </h3>
+                        </h4>
                       </Link>
-                      {lst.description && (
-                        <p className="font-sans text-xs text-slate-400 mt-2 line-clamp-2 italic">
-                          "{lst.description}"
-                        </p>
-                      )}
+                      <p className="text-xs text-slate-400 font-sans line-clamp-2">{lst.description || 'No description provided.'}</p>
                     </div>
-                    <div className="flex items-center justify-between pt-3 border-t border-white/8 font-mono text-xs mt-4">
-                      <span className="text-slate-400 text-[11px]">{lst.item_count || 0} Titles</span>
-                      <Link to={`/lists/${lst.id}`} className="text-[#e50914] hover:underline font-bold uppercase text-[11px]">
-                        View List →
-                      </Link>
-                    </div>
-                  </div>
+                    <span className="text-[10px] font-mono text-slate-400 pt-2 border-t border-white/8 block">
+                      {lst.item_count || 0} Films Stored
+                    </span>
+                  </GlassCard>
                 ))}
               </div>
             )}
@@ -733,15 +695,17 @@ export default function Profile() {
         {activeTab === 'watchlist' && isOwnProfile && (
           <div>
             {watchlistLoading ? (
-              <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING WATCHLIST POSTERS...</div>
+              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING WATCHLIST...</div>
             ) : watchlist.length === 0 ? (
-              <div className="border border-white/8 bg-[#121216] p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
-                Your watchlist is currently empty.
+              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+                Watchlist is empty. Explore movies and click bookmark to add!
               </div>
             ) : (
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {watchlist.map((item) => (
-                  <WatchlistCard key={item.tmdb_movie_id} movieId={item.tmdb_movie_id} />
+                  <div key={item.id} className="relative group">
+                    <MovieCard movie={{ id: item.tmdb_movie_id, title: `Film #${item.tmdb_movie_id}`, media_type: 'movie' }} />
+                  </div>
                 ))}
               </div>
             )}
@@ -749,65 +713,52 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Edit Profile Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-2xl">
-          <div 
-            className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
-            style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
-          >
-            <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
-              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide">
-                Edit Profile Dossier
-              </span>
-              <button 
-                onClick={() => setIsEditModalOpen(false)} 
-                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      {/* Edit Profile Modal with GlassModal */}
+      <GlassModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Cinephile Passport"
+        subtitle="Update your public critic avatar and cinema bio."
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleEditSubmit} className="space-y-4">
+          {editError && <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-xl text-xs">{editError}</div>}
+
+          <div className="flex items-center gap-4">
+            <div className="relative w-14 h-14 rounded-full overflow-hidden border border-white/20 shrink-0">
+              <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
+              <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                <Camera className="w-5 h-5 text-white" />
+              </label>
             </div>
-
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-5 text-left text-xs">
-              {editError && <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-xl">{editError}</div>}
-
-              <div className="flex flex-col items-center gap-3">
-                <div className="relative w-20 h-20 rounded-3xl border border-[#e50914]/40 bg-black overflow-hidden shadow-lg">
-                  <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
-                  <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                    <Camera className="w-5 h-5 text-white" />
-                  </label>
-                </div>
-                <input id="avatar-file-input" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                <button type="button" onClick={() => document.getElementById('avatar-file-input').click()} className="btn-secondary px-3.5 py-1.5 text-xs">
-                  Change Avatar
-                </button>
-              </div>
-
-              <div>
-                <label className="block font-mono font-bold uppercase tracking-wider text-[11px] text-slate-300 mb-1.5">
-                  Personal Biography
-                </label>
-                <textarea
-                  rows={3}
-                  maxLength={250}
-                  required
-                  value={editBio}
-                  onChange={(e) => setEditBio(e.target.value)}
-                  className="w-full p-3.5 bg-black/40 border border-white/10 rounded-xl text-slate-100 font-sans text-xs focus:outline-none focus:border-[#e50914]/70 leading-relaxed transition-all"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-secondary px-4 py-2 text-xs">Cancel</button>
-                <button type="submit" disabled={isSaving} className="btn-primary px-6 py-2 text-xs font-bold shadow-md">
-                  {isSaving ? 'Saving...' : 'Save Profile'}
-                </button>
-              </div>
-            </form>
+            <input id="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            <button type="button" onClick={() => document.getElementById('avatar-file-input').click()} className="btn-secondary px-3.5 py-1.5 text-xs">
+              Change Avatar
+            </button>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block font-mono font-bold uppercase tracking-wider text-[11px] text-slate-300 mb-1.5">
+              Personal Biography
+            </label>
+            <textarea
+              rows={3}
+              maxLength={250}
+              required
+              value={editBio}
+              onChange={(e) => setEditBio(e.target.value)}
+              className="w-full p-3.5 bg-black/40 border border-white/10 rounded-xl text-slate-100 font-sans text-xs focus:outline-none focus:border-[#e50914]/70 leading-relaxed transition-all"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-secondary px-4 py-2 text-xs">Cancel</button>
+            <button type="submit" disabled={isSaving} className="btn-primary px-6 py-2 text-xs font-bold shadow-md">
+              {isSaving ? 'Saving...' : 'Save Profile'}
+            </button>
+          </div>
+        </form>
+      </GlassModal>
     </div>
   );
 }

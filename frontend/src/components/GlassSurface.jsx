@@ -1,185 +1,218 @@
-import React, { useId, useMemo, useRef, useState, useEffect } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, { useEffect, useState, useRef, useId } from 'react';
 import './GlassSurface.css';
 
-/**
- * ReactBits 3D Liquid GlassSurface Component
- * Official ReactBits GlassSurface architecture featuring:
- * - Dynamic SVG Refraction Filter with Chromatic Aberration (RGB channel splitting)
- * - 3D Specular Gloss and Specular Reflection Highlights
- * - Liquid Curvature and Prismatic Bevel Borders
- * - High-performance GPU acceleration with resilient cross-browser fallback
- */
-export default function GlassSurface({
+const GlassSurface = ({
   children,
-  width = '100%',
-  height = 'auto',
+  width = 200,
+  height = 80,
   borderRadius = 20,
-  borderWidth = 1,
+  borderWidth = 0.07,
   brightness = 50,
-  opacity = 0.95,
-  blur = 16,
-  displace = 8,
-  backgroundOpacity = 0.15,
-  saturation = 1.6,
-  distortionScale = 25,
-  redOffset = 3,
-  greenOffset = 0,
-  blueOffset = -3,
+  opacity = 0.93,
+  blur = 11,
+  displace = 0,
+  backgroundOpacity = 0,
+  saturation = 1,
+  distortionScale = -180,
+  redOffset = 0,
+  greenOffset = 10,
+  blueOffset = 20,
   xChannel = 'R',
   yChannel = 'G',
-  mixBlendMode = 'screen',
-  borderOpacity = 0.25,
-  frosted = false,
+  mixBlendMode = 'difference',
   className = '',
-  style = {},
-  ...rest
-}) {
-  const uniqueId = useId().replace(/[:]/g, '-');
-  const filterId = `rb-glass-filter-${uniqueId}`;
+  style = {}
+}) => {
+  const uniqueId = useId().replace(/:/g, '-');
+  const filterId = `glass-filter-${uniqueId}`;
+  const redGradId = `red-grad-${uniqueId}`;
+  const blueGradId = `blue-grad-${uniqueId}`;
+
+  const [svgSupported, setSvgSupported] = useState(false);
+
   const containerRef = useRef(null);
-  const [dimensions, setDimensions] = useState({ width: 300, height: 60 });
+  const feImageRef = useRef(null);
+  const redChannelRef = useRef(null);
+  const greenChannelRef = useRef(null);
+  const blueChannelRef = useRef(null);
+  const gaussianBlurRef = useRef(null);
+
+  const generateDisplacementMap = () => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    const actualWidth = rect?.width || 400;
+    const actualHeight = rect?.height || 200;
+    const edgeSize = Math.min(actualWidth, actualHeight) * (borderWidth * 0.5);
+
+    const svgContent = `
+      <svg viewBox="0 0 ${actualWidth} ${actualHeight}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${redGradId}" x1="100%" y1="0%" x2="0%" y2="0%">
+            <stop offset="0%" stop-color="#0000"/>
+            <stop offset="100%" stop-color="red"/>
+          </linearGradient>
+          <linearGradient id="${blueGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#0000"/>
+            <stop offset="100%" stop-color="blue"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" fill="black"></rect>
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${redGradId})" />
+        <rect x="0" y="0" width="${actualWidth}" height="${actualHeight}" rx="${borderRadius}" fill="url(#${blueGradId})" style="mix-blend-mode: ${mixBlendMode}" />
+        <rect x="${edgeSize}" y="${edgeSize}" width="${actualWidth - edgeSize * 2}" height="${actualHeight - edgeSize * 2}" rx="${borderRadius}" fill="hsl(0 0% ${brightness}% / ${opacity})" style="filter:blur(${blur}px)" />
+      </svg>
+    `;
+
+    return `data:image/svg+xml,${encodeURIComponent(svgContent)}`;
+  };
+
+  const updateDisplacementMap = () => {
+    feImageRef.current?.setAttribute('href', generateDisplacementMap());
+  };
+
+  useEffect(() => {
+    updateDisplacementMap();
+    [
+      { ref: redChannelRef, offset: redOffset },
+      { ref: greenChannelRef, offset: greenOffset },
+      { ref: blueChannelRef, offset: blueOffset }
+    ].forEach(({ ref, offset }) => {
+      if (ref.current) {
+        ref.current.setAttribute('scale', (distortionScale + offset).toString());
+        ref.current.setAttribute('xChannelSelector', xChannel);
+        ref.current.setAttribute('yChannelSelector', yChannel);
+      }
+    });
+
+    gaussianBlurRef.current?.setAttribute('stdDeviation', displace.toString());
+  }, [
+    width,
+    height,
+    borderRadius,
+    borderWidth,
+    brightness,
+    opacity,
+    blur,
+    displace,
+    distortionScale,
+    redOffset,
+    greenOffset,
+    blueOffset,
+    xChannel,
+    yChannel,
+    mixBlendMode
+  ]);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const updateSize = () => {
-      if (containerRef.current) {
-        const { offsetWidth, offsetHeight } = containerRef.current;
-        setDimensions({
-          width: offsetWidth || 300,
-          height: offsetHeight || 60
-        });
-      }
-    };
-    updateSize();
 
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    const resizeObserver = new ResizeObserver(() => {
+      setTimeout(updateDisplacementMap, 0);
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, []);
 
-  const normalizedBrightness = brightness > 2 ? (brightness / 50).toFixed(2) : brightness;
+  useEffect(() => {
+    setTimeout(updateDisplacementMap, 0);
+  }, [width, height]);
 
-  const containerStyle = useMemo(() => ({
+  useEffect(() => {
+    setSvgSupported(supportsSVGFilters());
+  }, []);
+
+  const supportsSVGFilters = () => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return false;
+    }
+
+    const isWebkit = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    const isFirefox = /Firefox/.test(navigator.userAgent);
+
+    if (isWebkit || isFirefox) {
+      return false;
+    }
+
+    const div = document.createElement('div');
+    div.style.backdropFilter = `url(#${filterId})`;
+
+    return div.style.backdropFilter !== '';
+  };
+
+  const containerStyle = {
     ...style,
     width: typeof width === 'number' ? `${width}px` : width,
     height: typeof height === 'number' ? `${height}px` : height,
-    borderRadius: typeof borderRadius === 'number' ? `${borderRadius}px` : borderRadius,
-    '--rb-glass-blur': typeof blur === 'number' ? `${blur}px` : blur,
-    '--rb-glass-saturation': saturation,
-    '--rb-glass-brightness': normalizedBrightness,
-    '--rb-glass-frost': backgroundOpacity,
-    '--rb-glass-border-opacity': borderOpacity,
-    '--rb-glass-border-width': typeof borderWidth === 'number' ? `${borderWidth}px` : borderWidth,
-    '--rb-glass-radius': typeof borderRadius === 'number' ? `${borderRadius}px` : borderRadius,
-  }), [style, width, height, borderRadius, blur, saturation, normalizedBrightness, backgroundOpacity, borderOpacity, borderWidth]);
+    borderRadius: `${borderRadius}px`,
+    '--glass-frost': backgroundOpacity,
+    '--glass-saturation': saturation,
+    '--filter-id': `url(#${filterId})`
+  };
 
   return (
     <div
       ref={containerRef}
-      className={[
-        'rb-glass-surface',
-        frosted ? 'rb-glass-surface--frosted' : 'rb-glass-surface--liquid',
-        className
-      ].filter(Boolean).join(' ')}
+      className={`glass-surface ${svgSupported ? 'glass-surface--svg' : 'glass-surface--fallback'} ${className}`}
       style={containerStyle}
-      {...rest}
     >
-      {/* Dynamic Embedded SVG Refraction & Chromatic Aberration Filter */}
-      <svg
-        className="rb-glass-surface__svg"
-        aria-hidden="true"
-        style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none', opacity: 0 }}
-      >
+      <svg className="glass-surface__filter" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%" colorInterpolationFilters="sRGB">
-            {/* 1. Procedural Refractive Liquid Turbulence */}
-            <feTurbulence
-              type="fractalNoise"
-              baseFrequency="0.025 0.04"
-              numOctaves="2"
-              result="noise"
-            />
-            <feGaussianBlur in="noise" stdDeviation={displace > 0 ? displace / 4 : 2} result="smoothNoise" />
+          <filter id={filterId} colorInterpolationFilters="sRGB" x="0%" y="0%" width="100%" height="100%">
+            <feImage ref={feImageRef} x="0" y="0" width="100%" height="100%" preserveAspectRatio="none" result="map" />
 
-            {/* 2. Chromatic Aberration (R, G, B channel dispersion) */}
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="smoothNoise"
-              scale={distortionScale + redOffset}
-              xChannelSelector={xChannel}
-              yChannelSelector={yChannel}
-              result="dispRed"
-            />
+            <feDisplacementMap ref={redChannelRef} in="SourceGraphic" in2="map" id="redchannel" result="dispRed" />
             <feColorMatrix
               in="dispRed"
               type="matrix"
-              values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
-              result="redChannel"
+              values="1 0 0 0 0
+                      0 0 0 0 0
+                      0 0 0 0 0
+                      0 0 0 1 0"
+              result="red"
             />
 
             <feDisplacementMap
+              ref={greenChannelRef}
               in="SourceGraphic"
-              in2="smoothNoise"
-              scale={distortionScale + greenOffset}
-              xChannelSelector={xChannel}
-              yChannelSelector={yChannel}
+              in2="map"
+              id="greenchannel"
               result="dispGreen"
             />
             <feColorMatrix
               in="dispGreen"
               type="matrix"
-              values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"
-              result="greenChannel"
+              values="0 0 0 0 0
+                      0 1 0 0 0
+                      0 0 0 0 0
+                      0 0 0 1 0"
+              result="green"
             />
 
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="smoothNoise"
-              scale={distortionScale + blueOffset}
-              xChannelSelector={xChannel}
-              yChannelSelector={yChannel}
-              result="dispBlue"
-            />
+            <feDisplacementMap ref={blueChannelRef} in="SourceGraphic" in2="map" id="bluechannel" result="dispBlue" />
             <feColorMatrix
               in="dispBlue"
               type="matrix"
-              values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
-              result="blueChannel"
+              values="0 0 0 0 0
+                      0 0 0 0 0
+                      0 0 1 0 0
+                      0 0 0 1 0"
+              result="blue"
             />
 
-            {/* 3. Blend Chromatic Channels */}
-            <feBlend mode="screen" in="redChannel" in2="greenChannel" result="rg" />
-            <feBlend mode="screen" in="rg" in2="blueChannel" result="chromaticDisp" />
-
-            {/* 4. Specular Lighting for 3D Curved Glass Bevel */}
-            <feSpecularLighting
-              in="smoothNoise"
-              surfaceScale="4"
-              specularConstant="1.2"
-              specularExponent="24"
-              lightingColor="#ffffff"
-              result="specular"
-            >
-              <fePointLight x={dimensions.width / 2} y="-50" z="220" />
-            </feSpecularLighting>
-            <feComposite in="specular" in2="SourceAlpha" operator="in" result="specularLight" />
-
-            {/* 5. Composite Final 3D Glass Surface */}
-            <feBlend mode="normal" in="specularLight" in2="chromaticDisp" />
+            <feBlend in="red" in2="green" mode="screen" result="rg" />
+            <feBlend in="rg" in2="blue" mode="screen" result="output" />
+            <feGaussianBlur ref={gaussianBlurRef} in="output" stdDeviation="0.7" />
           </filter>
         </defs>
       </svg>
 
-      {/* 3D Liquid Specular Gloss Highlight Top Bevel */}
-      <div className="rb-glass-surface__specular" aria-hidden="true" />
-
-      {/* Prismatic Iridescent Refractive Edge */}
-      <div className="rb-glass-surface__prism-edge" aria-hidden="true" />
-
-      {/* Surface Content */}
-      <div className="rb-glass-surface__content">
-        {children}
-      </div>
+      <div className="glass-surface__content">{children}</div>
     </div>
   );
-}
+};
+
+export default GlassSurface;

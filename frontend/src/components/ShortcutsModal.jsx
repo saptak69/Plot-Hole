@@ -13,20 +13,20 @@ export default function ShortcutsModal({ isOpen, onClose }) {
   ];
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
+    <div className="fixed inset-0 z-[1000] bg-black/80 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <GlassSurface
         width="100%"
         height="auto"
-        borderRadius={28}
-        backgroundOpacity={0.45}
-        blur={14}
+        borderRadius={32}
+        backgroundOpacity={0.65}
+        blur={20}
         borderOpacity={0.14}
         className="max-w-md shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.08)]"
       >
         <div className="w-full text-slate-100">
-          <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
+          <div className="flex justify-between items-center px-6 py-4.5 bg-white/5 border-b border-white/8">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+              <div className="w-8 h-8 rounded-2xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff4d5a] shadow-sm">
                 <Keyboard className="w-4 h-4" />
               </div>
               <div>
@@ -47,9 +47,9 @@ export default function ShortcutsModal({ isOpen, onClose }) {
           <div className="p-6 space-y-4 text-left font-sans">
             <div className="divide-y divide-white/8">
               {shortcuts.map((sc) => (
-                <div key={sc.key} className="py-3 flex justify-between items-center text-xs">
+                <div key={sc.key} className="py-3.5 flex justify-between items-center text-xs">
                   <span className="text-slate-300 font-sans font-medium">{sc.description}</span>
-                  <kbd className="px-2.5 py-1 bg-black/60 border border-white/15 text-[#ff4d5a] font-mono font-bold text-[11px] rounded-lg shadow">
+                  <kbd className="px-2.5 py-1 bg-black/60 border border-white/15 text-[#ff4d5a] font-mono font-bold text-[11px] rounded-xl shadow">
                     {sc.key}
                   </kbd>
                 </div>
@@ -57,7 +57,7 @@ export default function ShortcutsModal({ isOpen, onClose }) {
             </div>
 
             <div className="pt-2 text-center">
-              <button onClick={onClose} className="btn-primary w-full py-2.5 text-xs font-bold uppercase shadow-md cursor-pointer">
+              <button onClick={onClose} className="btn-primary w-full py-3 text-xs font-display font-bold uppercase tracking-wider rounded-2xl shadow-md cursor-pointer">
                 Got It
               </button>
             </div>

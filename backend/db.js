@@ -208,6 +208,59 @@ export async function initDb() {
     );
   `;
 
+  const spacesPostsTable = `
+    CREATE TABLE IF NOT EXISTS spaces_posts (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'discussion',
+      media_tag TEXT,
+      tmdb_movie_id INTEGER,
+      video_embed_id TEXT,
+      rating REAL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
+  const spacesLikesTable = `
+    CREATE TABLE IF NOT EXISTS spaces_likes (
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (post_id, user_id),
+      FOREIGN KEY (post_id) REFERENCES spaces_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
+  const spacesCommentsTable = `
+    CREATE TABLE IF NOT EXISTS spaces_comments (
+      id TEXT PRIMARY KEY,
+      post_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      comment_text TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (post_id) REFERENCES spaces_posts(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `;
+
+  const notificationsTable = `
+    CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      link_url TEXT,
+      is_read INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   if (isPostgres) {
     try {
       // Test PostgreSQL connection
@@ -223,6 +276,10 @@ export async function initDb() {
       await pgPool.query(listsTable);
       await pgPool.query(listItemsTable);
       await pgPool.query(listLikesTable);
+      await pgPool.query(spacesPostsTable);
+      await pgPool.query(spacesLikesTable);
+      await pgPool.query(spacesCommentsTable);
+      await pgPool.query(notificationsTable);
       console.log('Database tables initialized successfully on PostgreSQL!');
     } catch (err) {
       if (process.env.NODE_ENV === 'production') {
@@ -248,6 +305,10 @@ export async function initDb() {
       await execute(listsTable);
       await execute(listItemsTable);
       await execute(listLikesTable);
+      await execute(spacesPostsTable);
+      await execute(spacesLikesTable);
+      await execute(spacesCommentsTable);
+      await execute(notificationsTable);
       console.log('Database tables initialized successfully on SQLite fallback database!');
     }
   } else {
@@ -262,6 +323,10 @@ export async function initDb() {
     await execute(listsTable);
     await execute(listItemsTable);
     await execute(listLikesTable);
+    await execute(spacesPostsTable);
+    await execute(spacesLikesTable);
+    await execute(spacesCommentsTable);
+    await execute(notificationsTable);
     console.log('Database tables initialized successfully on SQLite database!');
   }
 
@@ -298,7 +363,12 @@ export async function initDb() {
       'CREATE INDEX IF NOT EXISTS idx_follows_following_id ON follows(following_id);',
       'CREATE INDEX IF NOT EXISTS idx_review_comments_review_id ON review_comments(review_id);',
       'CREATE INDEX IF NOT EXISTS idx_lists_user_id ON lists(user_id);',
-      'CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);'
+      'CREATE INDEX IF NOT EXISTS idx_list_items_list_id ON list_items(list_id);',
+      'CREATE INDEX IF NOT EXISTS idx_spaces_posts_user_id ON spaces_posts(user_id);',
+      'CREATE INDEX IF NOT EXISTS idx_spaces_posts_category ON spaces_posts(category);',
+      'CREATE INDEX IF NOT EXISTS idx_spaces_likes_post_id ON spaces_likes(post_id);',
+      'CREATE INDEX IF NOT EXISTS idx_spaces_comments_post_id ON spaces_comments(post_id);',
+      'CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);'
     ];
     for (const sql of indexes) {
       try {
@@ -313,6 +383,125 @@ export async function initDb() {
     }
   };
   await createIndexes();
+
+  // Seed initial community data if spaces_posts is empty
+  const seedInitialSpacesAndNotifications = async () => {
+    try {
+      const existingPosts = await query('SELECT COUNT(*) as count FROM spaces_posts;');
+      const count = parseInt(existingPosts[0]?.count || 0);
+      if (count === 0) {
+        // Find or create default community curator users
+        let saptak = await queryOne("SELECT id FROM users WHERE username = 'saptak_cinephile'");
+        if (!saptak) {
+          const saptakId = 'usr_saptak_cinephile';
+          const dummyHash = '$2a$10$X8O.N48YkQ2Pnm9g70hKieF4r6W5iF7k9M3jL2p1Qo.aB3cD4e5f6';
+          await execute(
+            "INSERT INTO users (id, username, email, password_hash, display_name, bio) VALUES ($1, $2, $3, $4, $5, $6)",
+            [saptakId, 'saptak_cinephile', 'saptak@plothole.internal', dummyHash, 'Saptak Mondal', 'Founder & Film Archivist at PlotHole. 70mm and IMAX enthusiast.']
+          );
+          saptak = { id: saptakId };
+        }
+
+        let nolanPurist = await queryOne("SELECT id FROM users WHERE username = 'nolan_purist'");
+        if (!nolanPurist) {
+          const nolanId = 'usr_nolan_purist';
+          const dummyHash = '$2a$10$X8O.N48YkQ2Pnm9g70hKieF4r6W5iF7k9M3jL2p1Qo.aB3cD4e5f6';
+          await execute(
+            "INSERT INTO users (id, username, email, password_hash, display_name, bio) VALUES ($1, $2, $3, $4, $5, $6)",
+            [nolanId, 'nolan_purist', 'nolan@plothole.internal', dummyHash, 'Cinephile Odyssey', 'Analyzing deep sci-fi sound design and practical special effects.']
+          );
+          nolanPurist = { id: nolanId };
+        }
+
+        // Insert initial posts into database
+        const posts = [
+          {
+            id: 'sp_dune2',
+            user_id: saptak.id,
+            category: 'trailer',
+            title: 'Dune: Part Two Official IMAX Sequence — Visual Mastery by Greig Fraser',
+            content: 'The theatrical scale is breathtaking. The worm-riding sequence and the Harkonnen arena in infrared black-and-white redefine modern sci-fi cinematography. Greig Fraser used ARRI Alexa LF cameras and custom vintage lenses.',
+            media_tag: 'Dune: Part Two (2024)',
+            tmdb_movie_id: 693134,
+            video_embed_id: 'Way9Dexny3w',
+            rating: 4.0
+          },
+          {
+            id: 'sp_interstellar',
+            user_id: nolanPurist.id,
+            category: 'review',
+            title: 'Interstellar at 12 Years: Why the Wormhole sequence remains unmatched',
+            content: 'Rewatched in 4K HDR with lossless audio. The sound design silence when transitioning through the accretion disk is still the purest cinematic experience of the 21st century. 10/10 masterwork.',
+            media_tag: 'Interstellar (2014)',
+            tmdb_movie_id: 157336,
+            video_embed_id: null,
+            rating: 4.0
+          },
+          {
+            id: 'sp_oppenheimer',
+            user_id: saptak.id,
+            category: 'trailer',
+            title: 'Oppenheimer 70mm Trinity Sequence: The sound delay technique explained',
+            content: 'Nolan intentionally created an eerie absolute silence following the Trinity blast before the physical shockwave tears through the bunker. Notice how the pressure wave sound was recorded.',
+            media_tag: 'Oppenheimer (2023)',
+            tmdb_movie_id: 872585,
+            video_embed_id: 'uYPbbksJxIg',
+            rating: 4.0
+          },
+          {
+            id: 'sp_pulpfiction',
+            user_id: nolanPurist.id,
+            category: 'discussion',
+            title: 'Unpopular Opinion: Pulp Fiction’s soundtrack is actually a character in itself',
+            content: 'Every needle-drop dictates the pacing of the three non-linear timelines. Notice how Dick Dale’s surf rock immediately sets the adrenaline pace for Pumpkin and Honey Bunny.',
+            media_tag: 'Pulp Fiction (1994)',
+            tmdb_movie_id: 680,
+            video_embed_id: null,
+            rating: 4.0
+          }
+        ];
+
+        for (const p of posts) {
+          await execute(
+            `INSERT INTO spaces_posts (id, user_id, category, title, content, media_tag, tmdb_movie_id, video_embed_id, rating)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [p.id, p.user_id, p.category, p.title, p.content, p.media_tag, p.tmdb_movie_id, p.video_embed_id, p.rating]
+          );
+        }
+
+        // Seed initial comments
+        await execute(
+          `INSERT INTO spaces_comments (id, post_id, user_id, comment_text) VALUES 
+           ('sc_1', 'sp_dune2', $1, 'The audio mix in IMAX during the spice harvester attack was earth-shaking.'),
+           ('sc_2', 'sp_dune2', $2, 'Completely agree. Austin Butler as Feyd-Rautha stole the second half of the movie.'),
+           ('sc_3', 'sp_interstellar', $1, 'Zimmer recorded the organ at Temple Church in London. That reverberation makes the whole score holy.')`,
+          [nolanPurist.id, saptak.id]
+        );
+
+        // Seed initial likes
+        await execute(
+          `INSERT INTO spaces_likes (post_id, user_id) VALUES 
+           ('sp_dune2', $1),
+           ('sp_interstellar', $2),
+           ('sp_oppenheimer', $1)`,
+          [saptak.id, nolanPurist.id]
+        );
+
+        // Seed initial system notifications
+        await execute(
+          `INSERT INTO notifications (id, user_id, type, title, body, link_url, is_read) VALUES 
+           ('notif_1', NULL, 'update', 'District Partner Perk', 'Use code PLOT100 for ₹100 OFF on 2 cinema tickets across PVR, INOX, and Cinepolis.', 'https://in.bookmyshow.com', 0),
+           ('notif_2', NULL, 'activity', 'Release Radar Active', 'Track 24 upcoming theatrical releases with real showtimes in Release Radar.', '/schedule', 0),
+           ('notif_3', NULL, 'activity', 'Dune: Part Two Perfection', 'Dune: Part Two achieved 94% Perfection on the PlotHole Sentiment Meter.', '/media/movie/693134', 1)`
+        );
+
+        console.log('✨ Seeded initial community Spaces posts, comments, likes, and notifications!');
+      }
+    } catch (seedErr) {
+      console.error('Error seeding community data:', seedErr.message);
+    }
+  };
+  await seedInitialSpacesAndNotifications();
 }
 
 export async function withTransaction(callback) {

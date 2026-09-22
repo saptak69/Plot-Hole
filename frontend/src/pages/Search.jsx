@@ -6,18 +6,19 @@ import { API_URL } from '../config';
 import MovieCard from '../components/MovieCard';
 import Avatar from '../components/Avatar';
 import GlassSurface from '../components/GlassSurface';
+import GlassCard from '../components/GlassCard';
 
 function UserCard({ user }) {
   return (
-    <div className="border border-white/8 bg-[#121216] hover:border-[#e50914]/40 p-5 flex flex-col items-center justify-between text-center rounded-2xl shadow-lg hover:-translate-y-1 transition-all aspect-[2/3]">
+    <GlassCard className="p-5 flex flex-col items-center justify-between text-center rounded-3xl aspect-[2/3]">
       <div className="flex flex-col items-center w-full min-w-0">
-        <span className="bg-[#e50914]/15 text-[#ff4d5a] font-mono text-[10px] font-bold px-2.5 py-0.5 border border-[#e50914]/30 rounded-full mb-3 uppercase shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+        <span className="bg-[#e50914]/15 text-[#ff4d5a] font-mono text-[10px] font-semibold px-2.5 py-0.5 border border-[#e50914]/30 rounded-full mb-3 uppercase shadow-sm">
           Critic
         </span>
         
-        <Avatar username={user.username} url={user.avatar_url} className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-[#e50914]/30 rounded-2xl mb-2.5 shadow-md" />
+        <Avatar username={user.username} url={user.avatar_url} className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border border-white/20 mb-2.5 shadow-md" />
         
-        <span className="font-display font-bold text-slate-100 text-xs sm:text-sm truncate w-full block">
+        <span className="font-sans font-bold text-slate-100 text-xs sm:text-sm truncate w-full block">
           @{user.username}
         </span>
         
@@ -28,11 +29,11 @@ function UserCard({ user }) {
 
       <Link
         to={`/profile/${user.username}`}
-        className="btn-secondary w-full py-2 mt-3 text-xs font-mono font-semibold"
+        className="glass-btn-red text-[11px] font-display font-bold py-1.5 px-4 rounded-xl w-full text-center shadow-md uppercase tracking-wider block"
       >
         View Profile
       </Link>
-    </div>
+    </GlassCard>
   );
 }
 
@@ -88,8 +89,8 @@ export default function Search() {
         <div className="flex items-center gap-3 border-b border-white/8 pb-4">
           <SearchIcon className="w-6 h-6 sm:w-7 sm:h-7 text-[#e50914]" />
           <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-white">
-              Search Vault {queryStr ? <>: <span className="text-[#ff2e3b]">"{queryStr}"</span></> : ''}
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-white tracking-tight">
+              Search Vault {queryStr ? <>: <span className="text-[#ff4d5a]">"{queryStr}"</span></> : ''}
             </h1>
             <p className="text-xs font-mono text-slate-400 mt-0.5">
               {queryStr ? `Found ${movies.length} cinephile records` : 'Explore global cinema, TV series, and critics'}
@@ -104,21 +105,21 @@ export default function Search() {
             placeholder="Search films, series, directors, member handles..."
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            className="w-full bg-[#121216]/90 border border-white/12 hover:border-white/25 focus:border-[#e50914] focus:ring-2 focus:ring-[#e50914]/30 rounded-2xl py-3 pl-11 pr-24 text-sm font-sans text-white placeholder-slate-400 outline-none transition-all shadow-lg"
+            className="w-full bg-[#121218]/90 border border-white/12 hover:border-white/25 focus:border-[#e50914] focus:ring-2 focus:ring-[#e50914]/30 rounded-full py-3.5 pl-12 pr-28 text-sm font-sans text-white placeholder-slate-400 outline-none transition-all shadow-lg backdrop-blur-xl"
           />
-          <SearchIcon className="w-4 h-4 text-slate-400 absolute left-4 pointer-events-none" />
+          <SearchIcon className="w-4 h-4 text-slate-400 absolute left-4.5 pointer-events-none" />
           {inputVal && (
             <button
               type="button"
               onClick={() => setInputVal('')}
-              className="absolute right-20 text-slate-400 hover:text-white p-1"
+              className="absolute right-24 text-slate-400 hover:text-white p-1 cursor-pointer"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           )}
           <button
             type="submit"
-            className="glass-btn-red absolute right-1.5 py-1.5 px-4 rounded-xl text-xs font-mono font-bold uppercase"
+            className="glass-btn-red absolute right-1.5 py-2 px-5 rounded-full text-xs font-display font-bold uppercase tracking-wider cursor-pointer"
           >
             Search
           </button>
@@ -135,7 +136,7 @@ export default function Search() {
               key={tag}
               type="button"
               onClick={() => handleTagClick(tag)}
-              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-[#e50914]/20 border border-white/8 hover:border-[#e50914]/40 text-[11px] font-sans text-slate-300 hover:text-white transition-all cursor-pointer"
+              className="px-3 py-1 rounded-full bg-white/6 hover:bg-[#e50914]/20 border border-white/10 hover:border-[#e50914]/40 text-[11px] font-sans text-slate-300 hover:text-white transition-all cursor-pointer"
             >
               {tag}
             </button>
@@ -143,60 +144,25 @@ export default function Search() {
         </div>
       </div>
 
-      {/* Filter Tabs with GlassSurface (When results or query present) */}
+      {/* AICanvas Realistic Liquid Glass Tab Bar */}
       {queryStr && (
-        <GlassSurface
-          width="auto"
-          height="auto"
-          borderRadius={24}
-          backgroundOpacity={0.12}
-          blur={16}
-          borderOpacity={0.18}
-          className="p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)] w-full sm:w-fit"
-        >
-          <div className="flex gap-2 overflow-x-auto whitespace-nowrap scrollbar-none select-none px-1 py-0.5">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'all'
-                  ? 'glass-btn-red'
-                  : 'text-slate-300 hover:text-white hover:bg-white/8'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>All ({movies.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('movies')}
-              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'movies'
-                  ? 'glass-btn-red'
-                  : 'text-slate-300 hover:text-white hover:bg-white/8'
-              }`}
-            >
-              <Film className="w-3.5 h-3.5" />
-              <span>Films & Series ({movies.filter(m => m.media_type !== 'user').length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`px-4.5 py-2.5 text-xs font-display font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
-                activeTab === 'users'
-                  ? 'glass-btn-red'
-                  : 'text-slate-300 hover:text-white hover:bg-white/8'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Critics ({movies.filter(m => m.media_type === 'user').length})</span>
-            </button>
-          </div>
-        </GlassSurface>
+        <GlassTabBar
+          tabs={[
+            { id: 'all', label: 'All', icon: Layers, count: movies.length },
+            { id: 'movies', label: 'Films & Series', icon: Film, count: movies.filter(m => m.media_type !== 'user').length },
+            { id: 'users', label: 'Critics', icon: Users, count: movies.filter(m => m.media_type === 'user').length }
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          className="w-full sm:w-fit"
+        />
       )}
 
       {!queryStr ? (
-        <div className="border border-white/8 bg-[#121216] p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-3 shadow-lg">
+        <div className="glass-panel p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-3">
           <Sparkles className="w-8 h-8 text-[#e50914] mx-auto" />
-          <p className="text-base font-display font-bold text-slate-200">Start exploring the PlotHole Vault</p>
-          <p className="text-xs font-sans text-slate-400 max-w-md mx-auto">
+          <p className="text-base font-display font-bold text-slate-100">Start exploring the PlotHole Vault</p>
+          <p className="text-xs sm:text-sm font-sans text-slate-400 max-w-md mx-auto">
             Type any film title, television series, actor, or critic handle above to search through thousands of cinematic records.
           </p>
         </div>
@@ -207,7 +173,7 @@ export default function Search() {
           ))}
         </div>
       ) : error ? (
-        <div className="p-6 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-2xl flex items-start gap-4">
+        <div className="p-6 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-3xl flex items-start gap-4">
           <AlertCircle className="w-8 h-8 shrink-0" />
           <div>
             <h3 className="font-display font-bold text-lg uppercase">SEARCH PROTOCOL ERROR</h3>
@@ -215,8 +181,8 @@ export default function Search() {
           </div>
         </div>
       ) : filteredResults.length === 0 ? (
-        <div className="border border-white/8 bg-[#121216] p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-2 shadow-lg">
-          <p className="text-base font-display font-bold text-slate-200">No results found for "{queryStr}".</p>
+        <div className="glass-panel p-8 sm:p-12 text-center text-slate-400 rounded-3xl space-y-2">
+          <p className="text-base font-display font-bold text-slate-100">No results found for "{queryStr}".</p>
           <p className="text-xs font-sans text-slate-400">Check spelling or search for alternative film titles, web series, or member handles.</p>
         </div>
       ) : (

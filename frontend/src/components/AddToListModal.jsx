@@ -1,18 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { X, FolderPlus, Plus, Check, Loader2 } from 'lucide-react';
-import { API_URL, getPosterUrl } from '../config';
+import { useQueryClient } from '@tanstack/react-query';
+import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import CreateListModal from './CreateListModal';
 
-export default function AddToListModal({ isOpen, onClose, movie }) {
+export default function AddToListModal({
+  isOpen,
+  onClose,
+  movie,
+  movieId,
+  mediaType,
+  title,
+  posterPath,
+  releaseDate
+}) {
   const { user } = useAuth();
   const { addToast } = useToast();
+  const queryClient = useQueryClient();
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState(null);
   const [addedListIds, setAddedListIds] = useState(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const finalMovieId = movie?.id || movie?.tmdb_movie_id || movieId;
+  const finalMediaType = movie?.media_type || (movie?.first_air_date ? 'tv' : 'movie') || mediaType || 'movie';
+  const finalTitle = movie?.title || movie?.name || title || `Film #${finalMovieId}`;
+  const finalPoster = movie?.poster_path || posterPath;
+  const finalReleaseDate = movie?.release_date || movie?.first_air_date || releaseDate;
 
   useEffect(() => {
     if (!isOpen || !user) return;
@@ -37,32 +54,32 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
   }, [isOpen, user]);
 
   const handleAddToList = async (listId) => {
-    if (!movie) return;
+    if (!finalMovieId) return;
     setAddingId(listId);
-
-    const token = localStorage.getItem('plothole_token');
-    const mediaType = movie.media_type || (movie.first_air_date ? 'tv' : 'movie');
-    const title = movie.title || movie.name;
 
     try {
       const res = await fetch(`${API_URL}/lists/${listId}/items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          ...getAuthHeaders()
         },
         body: JSON.stringify({
-          tmdb_movie_id: movie.id,
-          media_type: mediaType,
-          title: title,
-          poster_path: movie.poster_path,
-          release_date: movie.release_date || movie.first_air_date
+          tmdb_movie_id: finalMovieId,
+          media_type: finalMediaType,
+          title: finalTitle,
+          poster_path: finalPoster,
+          release_date: finalReleaseDate
         })
       });
 
       if (res.ok) {
         setAddedListIds((prev) => new Set([...prev, listId]));
-        addToast(`Added "${title}" to list!`, 'success');
+        queryClient.invalidateQueries({ queryKey: ['singleList', listId] });
+        queryClient.invalidateQueries({ queryKey: ['currentUserLists'] });
+        queryClient.invalidateQueries({ queryKey: ['userCustomLists'] });
+        queryClient.invalidateQueries({ queryKey: ['userLists'] });
+        addToast(`Added "${finalTitle}" to list!`, 'success');
       } else {
         const err = await res.json();
         addToast(err.error || 'Failed to add item to list', 'error');
@@ -78,18 +95,18 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
+      <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
         <div 
-          className="w-full max-w-md rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)]"
+          className="w-full max-w-md rounded-3xl overflow-hidden border border-white/14 bg-[#121218]/95 text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.12)]"
           style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
         >
-          <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8">
+          <div className="flex justify-between items-center px-6 py-4.5 bg-white/5 border-b border-white/8">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+              <div className="w-8 h-8 rounded-2xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff4d5a] shadow-sm">
                 <FolderPlus className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block text-left">
+                <span className="font-display font-black text-sm text-slate-100 uppercase tracking-wide block text-left">
                   Add to List
                 </span>
                 <span className="font-mono text-[10px] text-slate-400 uppercase text-left block">Manage custom collection</span>
@@ -106,19 +123,19 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
           <div className="p-6 space-y-4 text-xs">
             {/* Film snapshot */}
             <div className="p-3 bg-white/5 border border-white/8 rounded-2xl flex items-center gap-3">
-              {movie?.poster_path && (
+              {finalPoster && (
                 <img
-                  src={getPosterUrl(movie.poster_path, 'w92')}
-                  alt={movie.title || movie.name}
+                  src={getPosterUrl(finalPoster, 'w92')}
+                  alt={finalTitle}
                   className="w-10 h-14 object-cover rounded-xl border border-white/10 shadow"
                 />
               )}
               <div className="min-w-0 flex-1 text-left">
                 <p className="font-display font-bold text-sm text-slate-100 truncate">
-                  {movie?.title || movie?.name}
+                  {finalTitle}
                 </p>
                 <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                  {(movie?.release_date || movie?.first_air_date || '').split('-')[0]} • {movie?.media_type === 'tv' ? 'TV SERIES' : 'FILM'}
+                  {(finalReleaseDate || '').split('-')[0]} • {finalMediaType === 'tv' ? 'TV SERIES' : 'FILM'}
                 </p>
               </div>
             </div>
@@ -127,7 +144,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
               <span className="font-mono font-bold uppercase text-slate-400 text-[11px]">Your Collections</span>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="text-[#e50914] hover:text-[#ff2e3b] flex items-center gap-1 font-mono font-bold text-[11px] uppercase transition-colors cursor-pointer"
+                className="text-[#ff4d5a] hover:text-white flex items-center gap-1 font-display font-bold text-[11px] uppercase tracking-wider transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>New List</span>
@@ -141,10 +158,10 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                 </div>
               ) : lists.length === 0 ? (
                 <div className="text-center p-6 text-slate-400 space-y-2">
-                  <p>You haven't created any custom lists yet.</p>
+                  <p className="font-sans text-xs">You haven't created any custom lists yet.</p>
                   <button
                     onClick={() => setShowCreateModal(true)}
-                    className="btn-primary py-1.5 px-3.5 text-[11px] font-bold"
+                    className="btn-primary py-2 px-4 rounded-2xl text-xs font-display font-bold uppercase tracking-wider"
                   >
                     Create Your First List
                   </button>
@@ -157,7 +174,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                   return (
                     <div
                       key={lst.id}
-                      className="p-3 bg-white/5 border border-white/8 hover:border-[#e50914]/30 rounded-2xl flex items-center justify-between transition-colors text-left"
+                      className="p-3 bg-white/5 border border-white/8 hover:border-white/20 rounded-2xl flex items-center justify-between transition-colors text-left"
                     >
                       <div>
                         <p className="font-display font-bold text-slate-100">{lst.title}</p>
@@ -166,7 +183,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
                       <button
                         onClick={() => handleAddToList(lst.id)}
                         disabled={isAdded || isAdding}
-                        className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold uppercase transition-all flex items-center gap-1 cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-2xl text-xs font-display font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer ${
                           isAdded
                             ? 'bg-[#e50914]/20 text-[#ff4d5a] border border-[#e50914]/40'
                             : 'bg-white/5 text-slate-200 border border-white/10 hover:border-[#e50914]/50 hover:text-[#e50914]'
@@ -193,7 +210,7 @@ export default function AddToListModal({ isOpen, onClose, movie }) {
             </div>
 
             <div className="flex justify-end pt-2">
-              <button onClick={onClose} className="btn-secondary px-5 py-2 text-xs cursor-pointer">
+              <button onClick={onClose} className="btn-secondary px-5 py-2.5 rounded-2xl text-xs font-display font-bold uppercase tracking-wider cursor-pointer">
                 Done
               </button>
             </div>

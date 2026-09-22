@@ -132,20 +132,20 @@ export default function TrailerHero({
 
   return (
     <div
-      className="relative w-full rounded-3xl overflow-hidden border border-white/12 bg-black shadow-2xl transition-all duration-300 select-none"
+      className="relative w-full rounded-3xl overflow-hidden border border-white/10 bg-[#070709] shadow-[0_20px_50px_rgba(0,0,0,0.85)] transition-all duration-300 select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       {/* Ambient backdrop glow */}
-      <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-[#e50914]/15 via-transparent to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 inset-x-0 h-44 bg-gradient-to-b from-[#e50914]/12 via-transparent to-transparent pointer-events-none z-10" />
 
       {/* ================= TRAILER PLAYER STATE ================= */}
       {isPlayingTrailer ? (
         <div className="relative aspect-video w-full bg-black flex items-center justify-center animate-fade-in">
           <button
             onClick={handleStopTrailer}
-            className="absolute top-4 right-4 z-30 px-3.5 py-1.5 rounded-full bg-black/70 hover:bg-black/90 text-slate-300 hover:text-white border border-white/20 text-xs font-mono font-bold tracking-wider uppercase backdrop-blur-md transition-all cursor-pointer shadow-lg"
+            className="absolute top-4 right-4 z-30 px-4 py-1.5 rounded-full bg-black/75 hover:bg-black/90 text-slate-200 hover:text-white border border-white/20 text-xs font-mono font-bold tracking-wider uppercase backdrop-blur-xl transition-all cursor-pointer shadow-xl"
           >
             ✕ Close Preview
           </button>
@@ -162,7 +162,7 @@ export default function TrailerHero({
                 Trailer Stream Unavailable
               </h4>
               <p className="text-xs text-slate-400">
-                No direct YouTube stream found. Search directly on YouTube:
+                No direct stream found. Search directly on YouTube:
               </p>
               <div className="pt-2 flex justify-center gap-2">
                 <a
@@ -194,7 +194,7 @@ export default function TrailerHero({
         </div>
       ) : (
         /* ================= CINEMATIC BACKDROP BANNER WITH CROSSFADE ================= */
-        <div className="relative aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[380px] sm:min-h-[340px] md:min-h-[440px] w-full group overflow-hidden">
+        <div className="relative aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[380px] sm:min-h-[380px] md:min-h-[460px] w-full group overflow-hidden">
           {/* Smooth Crossfading Backdrop Image */}
           {backdropUrl ? (
             <img
@@ -206,21 +206,21 @@ export default function TrailerHero({
               }`}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-slate-900 via-[#121216] to-black" />
+            <div className="w-full h-full bg-gradient-to-br from-slate-900 via-[#121218] to-black" />
           )}
 
-          {/* Cinematic Vignette Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08080a] via-[#08080a]/60 to-transparent pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#08080a]/90 via-[#08080a]/40 to-transparent pointer-events-none" />
+          {/* High-Definition Multi-Stop Cinema Scrim */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-[#070709]/90 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#070709]/95 via-[#070709]/60 to-transparent pointer-events-none" />
 
-          {/* Navigation Controls: Desktop Hover Arrows only (Mobile screens navigate cleanly via touch swipe) */}
+          {/* Navigation Controls: Desktop Hover Arrows only */}
           {onPrev && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onPrev();
               }}
-              className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
+              className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-xl items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer shadow-xl hover:border-[#e50914]/70"
               title="Previous Movie"
               aria-label="Previous Slide"
             >
@@ -234,7 +234,7 @@ export default function TrailerHero({
                 e.stopPropagation();
                 onNext();
               }}
-              className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-md items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 cursor-pointer shadow-xl hover:border-[#e50914]/70"
+              className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-xl items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer shadow-xl hover:border-[#e50914]/70"
               title="Next Movie"
               aria-label="Next Slide"
             >
@@ -242,27 +242,27 @@ export default function TrailerHero({
             </button>
           )}
 
-          {/* Centered GlassSurface Play Button */}
+          {/* Centered Apple Frosted Glass Play Button */}
           <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
             <div className="pointer-events-auto">
               <GlassSurface
                 width="auto"
                 height="auto"
                 borderRadius={9999}
-                backgroundOpacity={0.35}
-                blur={10}
-                borderOpacity={0.15}
-                className="shadow-[0_8px_32px_rgba(0,0,0,0.85),0_0_25px_rgba(229,9,20,0.15)] hover:border-[#e50914]/80 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer group/btn"
+                backgroundOpacity={0.4}
+                blur={16}
+                borderOpacity={0.22}
+                className="shadow-[0_12px_40px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.2)] hover:border-white/60 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer group/btn"
               >
                 <button
                   onClick={handleStartTrailer}
-                  className="flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 text-white/90 hover:text-white cursor-pointer"
+                  className="flex items-center gap-2.5 px-4.5 py-2.5 sm:px-6 sm:py-3 text-white/95 hover:text-white cursor-pointer"
                   title="Play Official Trailer"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/15 group-hover/btn:bg-gradient-to-r group-hover/btn:from-[#e50914] group-hover/btn:to-[#ff2e3b] group-hover/btn:text-white text-white flex items-center justify-center transition-all shadow-inner">
-                    <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 group-hover/btn:bg-gradient-to-r group-hover/btn:from-[#e50914] group-hover/btn:to-[#ff3b47] group-hover/btn:text-white text-white flex items-center justify-center transition-all shadow-inner">
+                    <Play className="w-4 h-4 fill-current ml-0.5" />
                   </div>
-                  <span className="font-display font-black text-xs sm:text-sm uppercase tracking-wider text-slate-100 group-hover/btn:text-white">
+                  <span className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-100 group-hover/btn:text-white">
                     Watch Trailer
                   </span>
                 </button>
@@ -279,16 +279,16 @@ export default function TrailerHero({
               }`}
             >
               <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 text-[10px] sm:text-xs font-mono font-bold uppercase shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 text-[10px] sm:text-xs font-mono font-semibold uppercase shadow-sm">
                   {activeMovie?.media_type === 'tv' || activeMovie?.first_air_date ? 'Series' : 'Feature Film'}
                 </span>
                 {year && (
-                  <span className="font-mono text-[10px] sm:text-xs text-slate-300 bg-black/60 px-2.5 py-0.5 rounded-full border border-white/10">
+                  <span className="font-mono text-[10px] sm:text-xs text-slate-300 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
                     {year}
                   </span>
                 )}
                 {rating && (
-                  <span className="font-mono text-[10px] sm:text-xs text-[#ffb800] font-bold flex items-center gap-1 bg-black/60 px-2.5 py-0.5 rounded-full border border-white/10">
+                  <span className="font-mono text-[10px] sm:text-xs text-[#ffb800] font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
                     <Star className="w-3 h-3 fill-[#ffb800] text-[#ffb800]" />
                     {rating}
                   </span>
@@ -300,7 +300,7 @@ export default function TrailerHero({
               </h2>
 
               {activeMovie?.overview && (
-                <p className="text-xs sm:text-sm text-slate-300/90 font-sans mt-2 line-clamp-2 leading-relaxed drop-shadow max-w-xl hidden sm:block">
+                <p className="text-xs sm:text-sm text-slate-300/95 font-sans mt-2 line-clamp-2 leading-relaxed drop-shadow max-w-xl hidden sm:block">
                   {activeMovie.overview}
                 </p>
               )}

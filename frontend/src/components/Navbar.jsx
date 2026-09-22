@@ -1,22 +1,91 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Search, Users, FolderPlus, LogOut, Home, User, Compass, X, Film, Sparkles, TrendingUp, ArrowRight } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { 
+  Search, Users, FolderPlus, LogOut, Home, User, Compass, X, Film, Sparkles, TrendingUp, ArrowRight,
+  Flame, Calendar, MessageSquare, Bookmark, LayoutGrid, Bell, ChevronDown, Check, ExternalLink, Ticket, Trophy,
+  Star, Clapperboard, Tv, ShieldCheck, Heart
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { API_URL, getPosterUrl } from '../config';
+import { API_URL, getPosterUrl, getAuthHeaders } from '../config';
 import Avatar from './Avatar';
 import Logo from './Logo';
 import GlassSurface from './GlassSurface';
+import GlassTabBar from './GlassTabBar';
 import RatingBadge from './RatingBadge';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [notificationTab, setNotificationTab] = useState('all');
+
+  // Real Database-Backed Notifications
+  const { data: notifData } = useQuery({
+    queryKey: ['notifications', user?.id],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/notifications`, {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) return { notifications: [], unreadCount: 0 };
+      return res.json();
+    },
+    refetchInterval: 30000
+  });
+
+  const notifications = notifData?.notifications || [];
+  const unreadCount = notifData?.unreadCount ?? 0;
+
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`${API_URL}/notifications/read-all`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  });
+
+  const markSingleReadMutation = useMutation({
+    mutationFn: async (id) => {
+      const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
+  });
+
+  const handleNotificationClick = (n) => {
+    if (n.unread) {
+      markSingleReadMutation.mutate(n.id);
+    }
+    setIsNotificationsOpen(false);
+    if (n.linkUrl && n.linkUrl !== '#') {
+      if (n.linkUrl.startsWith('http')) {
+        window.open(n.linkUrl, '_blank');
+      } else {
+        navigate(n.linkUrl);
+      }
+    }
+  };
+
   const [liveResults, setLiveResults] = useState([]);
   const [isLiveLoading, setIsLiveLoading] = useState(false);
   const searchInputRef = useRef(null);
   const modalInputRef = useRef(null);
+  const categoriesRef = useRef(null);
+  const notificationsRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +109,20 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close menus on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
+        setIsCategoriesOpen(false);
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
+        setIsNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Global Ctrl+K / Cmd+K search shortcut
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -50,6 +133,8 @@ export default function Navbar() {
       if (e.key === 'Escape') {
         setIsSearchModalOpen(false);
         setIsOpen(false);
+        setIsCategoriesOpen(false);
+        setIsNotificationsOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -102,166 +187,332 @@ export default function Navbar() {
     setIsSearchModalOpen(false);
   };
 
-  const handleQuickTagClick = (tag) => {
-    navigate(`/search?q=${encodeURIComponent(tag)}`);
-    setSearchQuery('');
-    setIsSearchModalOpen(false);
-  };
-
   const handleLinkClick = () => {
     setIsOpen(false);
     setIsSearchModalOpen(false);
+    setIsCategoriesOpen(false);
+    setIsNotificationsOpen(false);
   };
 
-  const isActive = (path) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
+  const markAllNotificationsRead = () => {
+    markAllReadMutation.mutate();
   };
+
+  const currentActiveTab = () => {
+    const path = location.pathname;
+    if (path === '/' || path.startsWith('/explore')) return '/explore';
+    if (path.startsWith('/schedule')) return '/schedule';
+    if (path.startsWith('/spaces')) return '/spaces';
+    if (path.startsWith('/collections') || path.startsWith('/lists')) return '/collections';
+    return '';
+  };
+
+  const filteredNotifications = notifications.filter(n => {
+    if (notificationTab === 'all') return true;
+    return n.type === notificationTab;
+  });
 
   return (
     <>
-      {/* Top Header - Seamless Transparent Header */}
+      {/* Top Header - Red, Orange & Charcoal Glass Header */}
       <header
-        className={`sticky z-50 transition-all duration-300 select-none py-2.5 sm:py-3 px-4 sm:px-6 md:px-12 ${
+        className={`sticky z-50 transition-all duration-300 select-none py-2.5 sm:py-3 px-4 sm:px-6 md:px-10 ${
           visible ? 'top-0' : '-top-28'
         } ${
           scrolled
-            ? 'bg-[#08080a]/65 backdrop-blur-xl border-b border-white/6 shadow-[0_4px_30px_rgba(0,0,0,0.6)]'
+            ? 'bg-[#08080b]/85 backdrop-blur-2xl border-b border-white/8 shadow-[0_6px_35px_rgba(0,0,0,0.85)]'
             : 'bg-transparent border-b border-transparent shadow-none'
         }`}
       >
-        <div className="max-w-7xl mx-auto flex md:grid md:grid-cols-[1fr_auto_1fr] items-center justify-between gap-3 sm:gap-4 md:gap-6 w-full">
-          {/* Column 1: Left Brand Logo */}
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 md:gap-6 w-full">
+          {/* Left: Brand Logo */}
           <div className="flex items-center justify-start shrink-0">
             <Logo size="sm" onClick={handleLinkClick} />
           </div>
 
-          {/* Column 2: Exact Dead-Center Navigation Links (Wider & Ultra-Transparent Liquid Glass) */}
-          <div className="hidden md:flex items-center justify-center">
-            <GlassSurface
-              width="auto"
-              height="auto"
-              borderRadius={24}
-              backgroundOpacity={0.12}
-              blur={16}
-              borderOpacity={0.18}
-              className="p-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.65),0_0_20px_rgba(229,9,20,0.06)]"
-            >
-              <nav className="flex items-center gap-1.5 sm:gap-2 px-2 py-0.5">
-                <Link
-                  to="/"
-                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    isActive('/')
-                      ? 'glass-btn-red'
-                      : 'text-slate-300 hover:text-white hover:bg-white/8'
-                  }`}
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>Discover</span>
-                </Link>
-                <Link
-                  to="/social"
-                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    isActive('/social')
-                      ? 'glass-btn-red'
-                      : 'text-slate-300 hover:text-white hover:bg-white/8'
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Community</span>
-                </Link>
-                <Link
-                  to="/lists"
-                  className={`px-4.5 lg:px-5 py-2 lg:py-2.5 rounded-xl text-xs font-display font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 shrink-0 ${
-                    isActive('/lists')
-                      ? 'glass-btn-red'
-                      : 'text-slate-300 hover:text-white hover:bg-white/8'
-                  }`}
-                >
-                  <FolderPlus className="w-3.5 h-3.5" />
-                  <span>Lists</span>
-                </Link>
-              </nav>
-            </GlassSurface>
+          {/* Center: Main Moctale-Style Tabs */}
+          <div className="hidden lg:flex items-center justify-center">
+            <GlassTabBar
+              tabs={[
+                { id: '/explore', label: 'Explore', icon: Flame },
+                { id: '/schedule', label: 'Schedule', icon: Calendar },
+                { id: '/spaces', label: 'Spaces', icon: MessageSquare },
+                { id: '/collections', label: 'Collections', icon: Bookmark }
+              ]}
+              activeTab={currentActiveTab()}
+              onTabChange={(tabId) => navigate(tabId)}
+            />
           </div>
 
-          {/* Column 3: Right Search & Actions (Right-Aligned in its Column) */}
+          {/* Right: Browse Categories, Notifications, Search & Profile */}
           <div className="flex items-center justify-end gap-2 sm:gap-2.5">
+
+            {/* Browse Categories Dropdown Trigger */}
+            <div className="relative hidden md:block" ref={categoriesRef}>
+              <button
+                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-display font-semibold transition-all border cursor-pointer ${
+                  isCategoriesOpen
+                    ? 'bg-white/12 border-[#ff6b00]/60 text-white shadow-[0_0_15px_rgba(255,107,0,0.25)]'
+                    : 'bg-white/6 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5 text-[#ff6b00]" />
+                <span className="hidden xl:inline">Categories</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${isCategoriesOpen ? 'rotate-180 text-[#ff6b00]' : 'text-slate-400'}`} />
+              </button>
+
+              {/* Categories Mega Popover */}
+              {isCategoriesOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(255,107,0,0.15)] p-4.5 z-50 text-left animate-fade-up"
+                  onClick={() => setIsCategoriesOpen(false)}
+                >
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
+                        Curated Highlights
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5 pt-2">
+                        <Link to="/explore?filter=trending" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <Flame className="w-3.5 h-3.5 text-[#e50914]" />
+                          <span>Talk of the Town</span>
+                        </Link>
+                        <Link to="/explore?filter=top100" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <Trophy className="w-3.5 h-3.5 text-[#ffa033]" />
+                          <span>Top 100 All Time</span>
+                        </Link>
+                        <Link to="/schedule" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <Calendar className="w-3.5 h-3.5 text-[#ff6b00]" />
+                          <span>Release Radar</span>
+                        </Link>
+                        <Link to="/collections?tab=discover" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <Bookmark className="w-3.5 h-3.5 text-[#ff3b47]" />
+                          <span>Staff Playlists</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
+                        Streaming Platforms
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5 pt-2">
+                        <Link to="/search?q=Netflix" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <span className="w-2 h-2 rounded-full bg-[#e50914] shadow-[0_0_8px_#e50914]" />
+                          <span>Netflix Picks</span>
+                        </Link>
+                        <Link to="/search?q=Prime" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <span className="w-2 h-2 rounded-full bg-[#00a8e1] shadow-[0_0_8px_#00a8e1]" />
+                          <span>Prime Video</span>
+                        </Link>
+                        <Link to="/search?q=JioHotstar" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <span className="w-2 h-2 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
+                          <span>JioHotstar</span>
+                        </Link>
+                        <Link to="/explore?filter=theaters" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
+                          <span className="w-2 h-2 rounded-full bg-[#ff5500] shadow-[0_0_8px_#ff5500]" />
+                          <span>In Theaters Now</span>
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
+                        Popular Genres
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {['Action', 'Sci-Fi', 'Crime Noir', 'Psychological', 'Dark Gritty', 'Anime', 'Horror'].map(g => (
+                          <Link
+                            key={g}
+                            to={`/search?q=${encodeURIComponent(g)}`}
+                            className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#ff6b00]/20 hover:border-[#ff6b00]/40 border border-white/8 text-[11px] text-slate-300 hover:text-white transition-all font-mono"
+                          >
+                            {g}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Notifications Bell Trigger */}
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                className="relative p-2 rounded-xl bg-white/6 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white text-[9px] font-bold flex items-center justify-center shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-pulse">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Notifications Popover */}
+              {isNotificationsOpen && (
+                <div
+                  className="absolute right-0 mt-3 w-80 sm:w-92 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.2)] overflow-hidden z-50 text-left animate-fade-up"
+                >
+                  <div className="p-3.5 border-b border-white/8 flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-display font-bold text-white">Notifications</p>
+                      <p className="text-[10px] font-mono text-slate-400">Activity & Releases</p>
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllNotificationsRead}
+                        className="text-[10px] font-mono text-[#ff6b00] hover:text-[#ffa033] cursor-pointer"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Tabs: All / Updates / Activity */}
+                  <div className="flex border-b border-white/8 px-3 pt-2 gap-2 text-xs font-mono">
+                    {['all', 'update', 'activity'].map(tab => (
+                      <button
+                        key={tab}
+                        onClick={() => setNotificationTab(tab)}
+                        className={`pb-2 capitalize transition-colors cursor-pointer ${
+                          notificationTab === tab
+                            ? 'text-[#ff6b00] border-b-2 border-[#ff6b00] font-bold'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {tab === 'update' ? 'Updates' : tab === 'activity' ? 'Activity' : 'All'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Notification List */}
+                  <div className="max-h-72 overflow-y-auto divide-y divide-white/6">
+                    {filteredNotifications.length > 0 ? (
+                      filteredNotifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => handleNotificationClick(n)}
+                          className={`p-3 hover:bg-white/6 transition-colors flex gap-2.5 items-start cursor-pointer group ${
+                            n.unread ? 'bg-white/4' : ''
+                          }`}
+                        >
+                          <span className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${n.unread ? 'bg-[#ff6b00] shadow-[0_0_8px_#ff6b00]' : 'bg-transparent'}`} />
+                          <div className="space-y-0.5 flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="text-[11px] font-display font-bold text-white truncate">{n.title}</span>
+                              <span className="text-[9px] font-mono text-slate-400 shrink-0">{n.time}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-300 leading-snug">{n.body}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-8 text-center text-xs text-slate-400 font-mono">
+                        No notifications in this tab
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search films, critics..."
+                placeholder="Search films, actors..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchModalOpen(true)}
-                className="w-32 sm:w-36 md:w-36 lg:w-48 xl:w-56 bg-white/5 hover:bg-white/8 focus:bg-black/80 focus:w-44 lg:focus:w-64 text-white placeholder-slate-400 text-xs font-mono font-medium rounded-full pl-8 pr-3 py-1.5 border border-white/10 focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all outline-none"
+                className="w-32 sm:w-36 md:w-40 lg:w-48 xl:w-56 bg-white/6 hover:bg-white/10 focus:bg-black/90 text-white placeholder-slate-400 text-xs font-sans rounded-full pl-9 pr-8 py-2 border border-white/12 focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition-all outline-none"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <kbd className="hidden lg:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-slate-400 border border-white/10 pointer-events-none">
+                ⌘K
+              </kbd>
             </form>
+
+            {/* Mobile Search Button */}
+            <button
+              onClick={() => setIsSearchModalOpen(true)}
+              className="sm:hidden p-2 rounded-xl bg-white/6 border border-white/10 text-slate-300 hover:text-white"
+            >
+              <Search className="w-4 h-4" />
+            </button>
 
             {/* Auth Dropdown & User Avatar */}
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
-                  className="flex items-center gap-2.5 p-1 rounded-full hover:bg-white/10 transition-colors focus:outline-none"
+                  className="flex items-center rounded-full border border-white/20 hover:border-[#ff6b00] transition-all focus:outline-none cursor-pointer overflow-hidden p-0 shadow-md"
                 >
-                  <Avatar username={user.username} url={user.avatar_url} className="w-8 h-8 ring-2 ring-[#e50914]/50" />
+                  <Avatar username={user.username} url={user.avatar_url} className="w-8 h-8 sm:w-8.5 sm:h-8.5" />
                 </button>
 
                 {isOpen && (
                   <div
-                    className="absolute right-0 mt-3 w-56 bg-[#121216]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.9)] py-2 text-left z-50 animate-in fade-in zoom-in-95 duration-150"
+                    className="absolute right-0 mt-3 w-56 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.95)] py-2 text-left z-50 animate-fade-up"
                     onClick={() => setIsOpen(false)}
                   >
                     <div className="px-4 py-3 border-b border-white/8">
-                      <p className="text-xs font-mono text-slate-400">Signed in as</p>
-                      <p className="text-sm font-display font-black text-white truncate mt-0.5">@{user.username}</p>
+                      <p className="text-[11px] font-mono text-slate-400">Signed in as</p>
+                      <p className="text-sm font-display font-bold text-white truncate mt-0.5">@{user.username}</p>
                     </div>
 
                     <Link
                       to={`/profile/${user.username}`}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-slate-200 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-wider"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
                     >
-                      <User className="w-4 h-4 text-[#e50914]" />
+                      <User className="w-4 h-4 text-[#ff6b00]" />
                       <span>Vault Profile</span>
                     </Link>
 
                     <Link
-                      to="/lists"
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-slate-200 hover:text-white hover:bg-white/5 transition-colors uppercase tracking-wider"
+                      to="/collections?tab=my"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
                     >
-                      <FolderPlus className="w-4 h-4 text-[#e50914]" />
+                      <Bookmark className="w-4 h-4 text-[#ff6b00]" />
                       <span>My Collections</span>
+                    </Link>
+
+                    <Link
+                      to="/collections?tab=watch-later"
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
+                    >
+                      <Film className="w-4 h-4 text-[#e50914]" />
+                      <span>Watch Later Queue</span>
                     </Link>
 
                     <div className="my-1 border-t border-white/8" />
 
                     <button
                       onClick={logout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-display font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors uppercase tracking-wider cursor-pointer text-left"
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Log Out</span>
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
                 <Link
                   to="/login"
-                  className="px-3 py-1.5 rounded-xl text-xs font-display font-black uppercase tracking-wider text-slate-300 hover:text-white transition-colors whitespace-nowrap"
+                  className="px-3.5 py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/signup"
-                  className="glass-btn-red py-1.5 px-4 rounded-xl text-xs font-display font-black uppercase tracking-wider shadow-md whitespace-nowrap"
+                  className="btn-fire py-2 px-4 rounded-xl text-xs font-display font-bold uppercase tracking-wider shadow-md whitespace-nowrap"
                 >
                   Sign Up
                 </Link>
@@ -271,90 +522,91 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Floating Bottom Dock with Symmetrical 5-Item Liquid GlassSurface */}
-      <div className="md:hidden fixed bottom-3 inset-x-3 z-50">
+      {/* Mobile Floating Bottom Dock (Moctale-inspired 5-tab glass dock) */}
+      <div className="lg:hidden fixed bottom-3 inset-x-3 z-50 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
         <GlassSurface
           width="100%"
           height="auto"
-          borderRadius={24}
-          backgroundOpacity={0.06}
-          blur={14}
-          borderOpacity={0.14}
-          className="glass-surface--dock shadow-[0_12px_45px_rgba(0,0,0,0.95),0_0_20px_rgba(229,9,20,0.1)] p-1"
+          borderRadius={26}
+          backgroundOpacity={0.4}
+          blur={20}
+          borderOpacity={0.16}
+          className="glass-surface--dock shadow-[0_16px_50px_rgba(0,0,0,0.95),0_0_20px_rgba(255,107,0,0.15)] p-1"
         >
-          <div className="flex items-center justify-around w-full py-1 px-0.5 gap-0.5">
+          <div className="flex items-center justify-around w-full py-1 px-1 gap-1">
             <Link
-              to="/"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
-                isActive('/')
-                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              to="/explore"
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
+                currentActiveTab() === '/explore'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/6'
               }`}
             >
-              <Compass className="w-4 h-4" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Discover</span>
-            </Link>
-
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all cursor-pointer ${
-                isActive('/search') || isSearchModalOpen
-                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Search className="w-4 h-4" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Search</span>
-            </button>
-
-            <Link
-              to="/social"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
-                isActive('/social')
-                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Feed</span>
+              <Flame className="w-4 h-4" />
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Explore</span>
             </Link>
 
             <Link
-              to="/lists"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
-                isActive('/lists')
-                  ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/5'
+              to="/schedule"
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
+                currentActiveTab() === '/schedule'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/6'
               }`}
             >
-              <FolderPlus className="w-4 h-4" />
-              <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Lists</span>
+              <Calendar className="w-4 h-4" />
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Schedule</span>
+            </Link>
+
+            <Link
+              to="/spaces"
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
+                currentActiveTab() === '/spaces'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/6'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Spaces</span>
+            </Link>
+
+            <Link
+              to="/collections"
+              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
+                currentActiveTab() === '/collections'
+                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
+                  : 'text-slate-300 hover:text-white hover:bg-white/6'
+              }`}
+            >
+              <Bookmark className="w-4 h-4" />
+              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Lists</span>
             </Link>
 
             {user ? (
               <Link
                 to={`/profile/${user.username}`}
-                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all ${
-                  isActive(`/profile/${user.username}`)
-                    ? 'glass-btn-red shadow-[0_0_12px_rgba(229,9,20,0.4)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
+                  location.pathname.startsWith(`/profile/${user.username}`)
+                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
+                    : 'text-slate-300 hover:text-white hover:bg-white/6'
                 }`}
               >
                 <User className="w-4 h-4" />
-                <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Vault</span>
+                <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Profile</span>
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-xl text-slate-300 hover:text-white hover:bg-white/5"
+                className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl text-slate-300 hover:text-white hover:bg-white/6"
               >
                 <User className="w-4 h-4" />
-                <span className="text-[9px] font-display font-black uppercase tracking-wider mt-0.5">Sign In</span>
+                <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Sign In</span>
               </Link>
             )}
           </div>
         </GlassSurface>
       </div>
+
 
       {/* Quick Search Overlay Modal (Universal & Mobile Responsive) */}
       {isSearchModalOpen && (
@@ -372,6 +624,12 @@ export default function Navbar() {
                 placeholder="Search films, series, directors, critics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSearchSubmit(e);
+                  }
+                }}
                 className="w-full bg-transparent text-white placeholder-slate-400 font-sans text-sm sm:text-base outline-none pr-8"
               />
               {searchQuery && (
@@ -520,4 +778,3 @@ export default function Navbar() {
     </>
   );
 }
-

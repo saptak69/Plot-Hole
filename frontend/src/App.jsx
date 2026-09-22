@@ -6,7 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 
 import Navbar from './components/Navbar';
 import Logo, { BrandMark } from './components/Logo';
-import FaultyTerminal from './components/FaultyTerminal';
+import CinemaBackground from './components/CinemaBackground';
 import Home from './pages/Home';
 import MovieDetails from './pages/MovieDetails';
 import SearchPage from './pages/Search';
@@ -15,6 +15,9 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import SocialFeed from './pages/SocialFeed';
 import ListsPage from './pages/Lists';
+import Schedule from './pages/Schedule';
+import Spaces from './pages/Spaces';
+import NotFound from './pages/NotFound';
 import PersonModal from './components/PersonModal';
 
 import './App.css';
@@ -35,64 +38,49 @@ function NavigateToMedia() {
   return <Navigate to={`/media/movie/${id}`} replace />;
 }
 
+function NavigateToContent() {
+  const { slug } = useParams();
+  const numericId = parseInt(slug, 10);
+  if (!isNaN(numericId)) {
+    return <Navigate to={`/media/movie/${numericId}`} replace />;
+  }
+  return <Navigate to={`/search?q=${encodeURIComponent(slug.replace(/-/g, ' '))}`} replace />;
+}
+
 function MainLayout() {
   const [selectedPersonId, setSelectedPersonId] = useState(null);
 
   return (
     <>
-      <div className="min-h-screen bg-[#08080a] text-slate-100 flex flex-col selection:bg-[#e50914] selection:text-white relative">
-        {/* Global Full-Screen Ambient Cinema Grid/Shader Pattern */}
-        <div className="fixed inset-0 pointer-events-none z-0 opacity-75 overflow-hidden">
-          <FaultyTerminal
-            scale={1.8}
-            gridMul={[3, 1.5]}
-            digitSize={1.3}
-            timeScale={0.65}
-            pause={false}
-            scanlineIntensity={0.8}
-            glitchAmount={1.0}
-            flickerAmount={0.7}
-            noiseAmp={0.9}
-            chromaticAberration={2.0}
-            dither={0.2}
-            curvature={0.06}
-            tint="#e50914"
-            mouseReact={true}
-            mouseStrength={0.4}
-            pageLoadAnimation={false}
-            brightness={1.45}
-          />
-        </div>
+      <div className="min-h-screen bg-[#070709] text-slate-100 flex flex-col selection:bg-[#e50914] selection:text-white relative">
+        {/* 3D Vanta Cinema Background (Cinematic Mist) + Projector Embers */}
+        <CinemaBackground showParticles={true} particleCount={45} />
 
-        {/* Vibrant Cinema Ambient Background Lighting Layer (GPU Native) */}
-        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 will-change-transform transform-gpu" style={{ contain: 'strict' }}>
-          {/* Top Radiant Spotlight (Netflix Red & Cinema Gold) */}
-          <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[950px] h-[550px] bg-[radial-gradient(ellipse_at_top,rgba(229,9,20,0.20)_0%,rgba(255,46,59,0.09)_40%,transparent_75%)] transform-gpu" />
-          
-          {/* Left Radiant Cinema Gold Ambient Glow */}
-          <div className="absolute top-1/4 -left-48 w-[650px] h-[650px] bg-[radial-gradient(circle_at_center,rgba(255,184,0,0.09)_0%,rgba(229,9,20,0.04)_45%,transparent_70%)] transform-gpu" />
-
-          {/* Right Deep Crimson Ambient Glow */}
-          <div className="absolute top-2/3 -right-48 w-[700px] h-[700px] bg-[radial-gradient(circle_at_center,rgba(229,9,20,0.13)_0%,rgba(184,7,16,0.05)_45%,transparent_70%)] transform-gpu" />
-        </div>
-
-        {/* Subtle Ambient Film Grain */}
-        <div className="film-grain" />
+        {/* Subtle 35mm Tactile Film Grain */}
+        {/* <div className="film-grain" /> */}
 
         <Navbar />
 
-        <main className="flex-1 flex flex-col pb-16 md:pb-0 relative z-10">
+        <main className="flex-1 flex flex-col pb-20 md:pb-0 relative z-10">
           <Routes>
             <Route path="/" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
+            <Route path="/explore" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/spaces" element={<Spaces />} />
+            <Route path="/collections" element={<ListsPage />} />
+            <Route path="/collections/:id" element={<ListsPage />} />
+            <Route path="/lists" element={<ListsPage />} />
+            <Route path="/lists/:id" element={<ListsPage />} />
             <Route path="/movies/:id" element={<NavigateToMedia />} />
+            <Route path="/content/:slug" element={<NavigateToContent />} />
             <Route path="/media/:mediaType/:id" element={<MovieDetails onOpenPerson={(id) => setSelectedPersonId(id)} />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/u/:username" element={<Profile />} />
             <Route path="/profile/:username" element={<Profile />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/social" element={<SocialFeed />} />
-            <Route path="/lists" element={<ListsPage />} />
-            <Route path="/lists/:id" element={<ListsPage />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
 

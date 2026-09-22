@@ -30,19 +30,19 @@ export default function PersonModal({ personId, onClose }) {
     .slice(0, 10);
 
   return (
-    <div className="fixed inset-0 z-[1000] bg-black/85 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
+    <div className="fixed inset-0 z-[1000] bg-black/80 flex items-center justify-center p-4 backdrop-blur-2xl animate-fade-in">
       <div 
-        className="w-full max-w-3xl rounded-3xl overflow-hidden border border-white/12 bg-[#121216] text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.15)] max-h-[90vh] flex flex-col"
+        className="w-full max-w-3xl rounded-3xl overflow-hidden border border-white/14 bg-[#121218]/95 text-slate-100 shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.12)] max-h-[90vh] flex flex-col"
         style={{ animation: 'fade-up 250ms cubic-bezier(0.22, 1, 0.36, 1) both' }}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 bg-white/5 border-b border-white/8 shrink-0">
+        <div className="flex justify-between items-center px-6 py-4.5 bg-white/5 border-b border-white/8 shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff2e3b] shadow-[0_0_10px_rgba(229,9,20,0.2)]">
+            <div className="w-8 h-8 rounded-2xl bg-[#e50914]/15 border border-[#e50914]/30 flex items-center justify-center text-[#ff4d5a] shadow-sm">
               <User className="w-4 h-4" />
             </div>
             <div>
-              <span className="font-display font-bold text-sm text-slate-100 uppercase tracking-wide block">
+              <span className="font-display font-black text-sm text-slate-100 uppercase tracking-wide block">
                 {person?.name || 'Artist Dossier'}
               </span>
               <span className="font-mono text-[10px] text-slate-400 uppercase">Filmography & Biography</span>
@@ -62,7 +62,7 @@ export default function PersonModal({ personId, onClose }) {
             <p className="font-mono text-xs text-[#e50914] font-bold uppercase tracking-widest">FETCHING ARTIST ARCHIVE...</p>
           </div>
         ) : person ? (
-          <div className="p-6 overflow-y-auto space-y-6 flex-1 text-left">
+          <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 text-left">
             {/* Person Header */}
             <div className="flex flex-col sm:flex-row gap-6 items-start">
               {person.profile_path ? (
@@ -78,7 +78,7 @@ export default function PersonModal({ personId, onClose }) {
               )}
 
               <div className="space-y-2.5 flex-1">
-                <h2 className="text-2xl md:text-3xl font-display font-black text-white">
+                <h2 className="text-2xl md:text-3xl font-display font-black text-white tracking-tight">
                   {person.name}
                 </h2>
                 {person.known_for_department && (
@@ -93,7 +93,7 @@ export default function PersonModal({ personId, onClose }) {
                   </div>
                 )}
                 {person.biography && (
-                  <p className="text-xs font-sans text-slate-300 line-clamp-4 leading-relaxed bg-black/40 p-3.5 rounded-xl border border-white/5">
+                  <p className="text-xs font-sans text-slate-300 line-clamp-4 leading-relaxed bg-black/40 p-3.5 rounded-2xl border border-white/6">
                     {person.biography}
                   </p>
                 )}
@@ -102,7 +102,7 @@ export default function PersonModal({ personId, onClose }) {
 
             {/* Known For / Top Credits */}
             <div className="space-y-3.5 pt-4 border-t border-white/8">
-              <h3 className="font-display font-bold text-base text-slate-100 uppercase tracking-wide flex items-center gap-2">
+              <h3 className="font-display font-black text-sm sm:text-base text-slate-100 uppercase tracking-wide flex items-center gap-2">
                 <Film className="w-4 h-4 text-[#e50914]" />
                 <span>Featured Filmography ({person.credits?.cast?.length || 0} Titles)</span>
               </h3>
@@ -115,14 +115,14 @@ export default function PersonModal({ personId, onClose }) {
                       onClose();
                       navigate(`/media/${credit.media_type || 'movie'}/${credit.id}`);
                     }}
-                    className="group bg-white/5 hover:bg-[#1a1a24] border border-white/8 hover:border-[#e50914]/50 rounded-2xl p-2 text-center cursor-pointer transition-all hover:-translate-y-1"
+                    className="group bg-white/5 hover:bg-[#181822] border border-white/8 hover:border-white/20 rounded-2xl p-2 text-center cursor-pointer transition-all hover:-translate-y-1"
                   >
                     <img
                       src={`https://image.tmdb.org/t/p/w185${credit.poster_path}`}
                       alt={credit.title || credit.name}
                       className="w-full h-36 object-cover rounded-xl border border-white/10 mb-2 shadow"
                     />
-                    <h4 className="font-display font-bold text-xs truncate text-slate-200 group-hover:text-[#ff2e3b]">
+                    <h4 className="font-display font-bold text-xs truncate text-slate-200 group-hover:text-[#ff3b47]">
                       {credit.title || credit.name}
                     </h4>
                     <p className="text-[10px] font-mono text-slate-400 truncate mt-0.5">

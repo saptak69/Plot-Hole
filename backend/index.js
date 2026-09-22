@@ -498,11 +498,15 @@ function getOfflineFallback(endpoint) {
     return { results: OFFLINE_MOVIES.slice(0, 3) };
   }
 
-  // If request is for lists (popular, top-rated, upcoming, search)
+  // If request is for lists (popular, top-rated, upcoming, now_playing, trending, discover, similar, search)
   if (
     endpoint.includes('/popular') || 
     endpoint.includes('/top_rated') || 
     endpoint.includes('/upcoming') || 
+    endpoint.includes('/now_playing') || 
+    endpoint.includes('/trending') || 
+    endpoint.includes('/discover') || 
+    endpoint.includes('/similar') || 
     endpoint.includes('/search')
   ) {
     const isTv = endpoint.includes('/tv/');
@@ -593,6 +597,46 @@ async function fetchFromTMDB(endpoint, queryParams = {}) {
   }
   setCachedData(cacheKey, data, ttl);
   return data;
+}
+
+// Helper to enrich database items with TMDB movie details
+async function enrichWithTMDBDetails(items) {
+  if (!items || items.length === 0) return items;
+  
+  // Get unique TMDB IDs
+  const uniqueIds = [...new Set(items.filter(item => item.tmdb_movie_id).map(item => item.tmdb_movie_id))];
+  if (uniqueIds.length === 0) return items;
+  
+  // Fetch details concurrently
+  const movieDetailsMap = {};
+  await Promise.all(
+    uniqueIds.map(async (id) => {
+      try {
+        const details = await fetchFromTMDB(`/movie/${id}`);
+        if (details) {
+          movieDetailsMap[id] = details;
+        }
+      } catch (err) {
+        console.error(`Failed to fetch TMDB details for enrichment (ID: ${id})`);
+      }
+    })
+  );
+  
+  // Attach to items
+  return items.map(item => {
+    if (!item.tmdb_movie_id) return item;
+    const details = movieDetailsMap[item.tmdb_movie_id];
+    if (details) {
+      return {
+        ...item,
+        title: details.title,
+        name: details.name || details.title,
+        poster_path: details.poster_path,
+        media_type: 'movie',
+      };
+    }
+    return item;
+  });
 }
 
 // --- DEV / ADMIN DATABASE RESET ENDPOINT ---
@@ -954,6 +998,200 @@ app.get('/api/tv/top-rated', async (req, res) => {
   }
 });
 
+// Trending Movies & Series (Day or Week)
+app.get('/api/movies/trending', async (req, res) => {
+  try {
+    const timeWindow = req.query.timeWindow === 'week' ? 'week' : 'day';
+    const mediaType = req.query.mediaType || 'all';
+    const data = await fetchFromTMDB(`/trending/${mediaType}/${timeWindow}`, { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Now Playing in Theatres
+app.get('/api/movies/now-playing', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB('/movie/now_playing', { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Discover Movies with flexible filter parameters
+app.get('/api/movies/discover', async (req, res) => {
+  try {
+    const queryParams = {
+      sort_by: req.query.sort_by || 'popularity.desc',
+      page: req.query.page || 1
+    };
+    if (req.query.with_genres) queryParams.with_genres = req.query.with_genres;
+    if (req.query.with_original_language) queryParams.with_original_language = req.query.with_original_language;
+    if (req.query.vote_count_gte) queryParams['vote_count.gte'] = req.query.vote_count_gte;
+    if (req.query.vote_average_gte) queryParams['vote_average.gte'] = req.query.vote_average_gte;
+    if (req.query.year) queryParams.primary_release_year = req.query.year;
+
+    const data = await fetchFromTMDB('/discover/movie', queryParams);
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Curated Japanese Anime Masterpieces
+app.get('/api/movies/anime', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB('/discover/movie', {
+      with_genres: '16',
+      with_original_language: 'ja',
+      sort_by: 'vote_count.desc',
+      'vote_count.gte': 200,
+      page: req.query.page || 1
+    });
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Neo-Noir & Crime Thrillers
+app.get('/api/movies/noir', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB('/discover/movie', {
+      with_genres: '53,80',
+      sort_by: 'vote_average.desc',
+      'vote_count.gte': 500,
+      page: req.query.page || 1
+    });
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Sci-Fi Masterworks
+app.get('/api/movies/sci-fi', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB('/discover/movie', {
+      with_genres: '878',
+      sort_by: 'vote_average.desc',
+      'vote_count.gte': 500,
+      page: req.query.page || 1
+    });
+    res.setHeader('Cache-Control', 'public, max-age=600, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Similar titles
+app.get('/api/movies/:id/similar', async (req, res) => {
+  try {
+    const data = await fetchFromTMDB(`/movie/${req.params.id}/similar`, { page: req.query.page });
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Release Radar Schedule for /schedule page
+app.get('/api/schedule/radar', async (req, res) => {
+  try {
+    const [nowPlayingRes, upcomingRes] = await Promise.all([
+      fetchFromTMDB('/movie/now_playing').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/upcoming').catch(() => ({ results: [] }))
+    ]);
+
+    const venues = [
+      { name: 'In Theatres (IMAX)', color: 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40' },
+      { name: 'In Theatres (Dolby Cinema)', color: 'bg-[#ff6b00]/20 text-[#ffa033] border-[#ff6b00]/40' },
+      { name: 'In Theatres (70mm)', color: 'bg-[#ffa033]/20 text-[#ffb85c] border-[#ffa033]/40' },
+      { name: 'Streaming Premiere', color: 'bg-white/10 text-white border-white/20' }
+    ];
+
+    const GENRE_MAP = {
+      28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
+      99: 'Doc', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History',
+      27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance',
+      878: 'Sci-Fi', 53: 'Thriller', 10752: 'War', 37: 'Western'
+    };
+
+    const formatRadarItem = (m, status, idx) => {
+      const releaseDate = m.release_date || new Date().toISOString().split('T')[0];
+      const d = new Date(releaseDate);
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      const monthGroup = !isNaN(d.getTime()) ? `${monthNames[d.getMonth()]} ${d.getFullYear()}` : 'Upcoming 2026';
+      const venue = venues[idx % venues.length];
+      const hypeNumber = Math.round((m.popularity || 20) * 120 + 3500);
+
+      return {
+        id: m.id,
+        title: m.title || m.original_title,
+        type: 'movie',
+        release_date: releaseDate,
+        monthGroup,
+        venue: venue.name,
+        venueColor: venue.color,
+        genres: (m.genre_ids || []).slice(0, 3).map(gid => GENRE_MAP[gid] || 'Cinema'),
+        director: 'Feature Presentation',
+        hype: `${(hypeNumber / 1000).toFixed(1)}k waiting`,
+        poster_path: m.poster_path,
+        backdrop_path: m.backdrop_path,
+        vote_average: m.vote_average,
+        status: status,
+        synopsis: m.overview || 'Experience this masterwork presentation on the big screen.'
+      };
+    };
+
+    const inTheatres = (nowPlayingRes.results || []).slice(0, 10).map((m, i) => formatRadarItem(m, 'released', i));
+    const upcoming = (upcomingRes.results || []).slice(0, 14).map((m, i) => formatRadarItem(m, 'upcoming', i + 2));
+
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json({
+      inTheatres,
+      upcoming,
+      totalCount: inTheatres.length + upcoming.length
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Comprehensive Explore Bundle for /explore
+app.get('/api/explore/bundle', async (req, res) => {
+  try {
+    const [trending, nowPlaying, topRated, upcoming, anime, noir] = await Promise.all([
+      fetchFromTMDB('/trending/all/day').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/now_playing').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/top_rated').catch(() => ({ results: [] })),
+      fetchFromTMDB('/movie/upcoming').catch(() => ({ results: [] })),
+      fetchFromTMDB('/discover/movie', { with_genres: '16', with_original_language: 'ja', sort_by: 'vote_count.desc', 'vote_count.gte': 200 }).catch(() => ({ results: [] })),
+      fetchFromTMDB('/discover/movie', { with_genres: '53,80', sort_by: 'vote_average.desc', 'vote_count.gte': 500 }).catch(() => ({ results: [] }))
+    ]);
+
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=86400');
+    res.json({
+      trending: trending.results || [],
+      nowPlaying: nowPlaying.results || [],
+      topRated: topRated.results || [],
+      upcoming: upcoming.results || [],
+      anime: anime.results || [],
+      noir: noir.results || []
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Multi Search (searches movies, TV shows, and local users)
 app.get('/api/movies/search', searchRateLimiter, async (req, res) => {
   try {
@@ -1266,8 +1504,9 @@ app.get('/api/reviews', async (req, res) => {
        ORDER BY r.created_at DESC 
        LIMIT 50`
     );
+    const enrichedReviews = await enrichWithTMDBDetails(reviews);
     res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-    res.json(reviews);
+    res.json(enrichedReviews);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -1403,6 +1642,25 @@ app.delete('/api/reviews/comments/:commentId', authenticateToken, async (req, re
 
 // --- CUSTOM LISTS ROUTES ---
 
+// Explore / Browse All Public Lists
+app.get('/api/lists', async (req, res) => {
+  try {
+    const lists = await query(
+      `SELECT l.*, u.username, u.avatar_url, u.display_name,
+         (SELECT COUNT(*) FROM list_items li WHERE li.list_id = l.id) as item_count,
+         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count
+       FROM lists l
+       JOIN users u ON l.user_id = u.id
+       WHERE l.is_private = 0 OR l.is_private IS NULL
+       ORDER BY l.created_at DESC
+       LIMIT 50`
+    );
+    res.json(lists);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create List
 app.post('/api/lists', authenticateToken, async (req, res) => {
   const userId = req.user.id;
@@ -1414,24 +1672,28 @@ app.post('/api/lists', authenticateToken, async (req, res) => {
     const listId = 'lst_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
     await execute(
       'INSERT INTO lists (id, user_id, title, description, is_private) VALUES ($1, $2, $3, $4, $5)',
-      [listId, userId, title.trim(), description || '', is_private ? 1 : 0]
+      [listId, userId, sanitizeText(title, 100), sanitizeText(description || '', 500), is_private ? 1 : 0]
     );
     const list = await queryOne('SELECT * FROM lists WHERE id = $1', [listId]);
-    res.status(201).json(list);
+    res.status(201).json({ ...list, item_count: 0, likes_count: 0 });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
 // Get User's Lists
-app.get('/api/lists/user/:username', async (req, res) => {
-  const normalizedUsername = req.params.username.trim().toLowerCase();
+app.get(['/api/lists/user/:username', '/api/lists/user/:identifier'], async (req, res) => {
+  const rawIdentifier = (req.params.username || req.params.identifier || '').trim();
+  const normalizedUsername = rawIdentifier.toLowerCase();
   try {
-    const targetUser = await queryOne('SELECT id FROM users WHERE username = $1', [normalizedUsername]);
+    const targetUser = await queryOne(
+      'SELECT id FROM users WHERE LOWER(username) = $1 OR id = $2',
+      [normalizedUsername, rawIdentifier]
+    );
     if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
     const lists = await query(
-      `SELECT l.*, u.username, u.avatar_url,
+      `SELECT l.*, u.username, u.avatar_url, u.display_name,
          (SELECT COUNT(*) FROM list_items li WHERE li.list_id = l.id) as item_count,
          (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count
        FROM lists l
@@ -1450,7 +1712,7 @@ app.get('/api/lists/user/:username', async (req, res) => {
 app.get('/api/lists/:id', async (req, res) => {
   try {
     const list = await queryOne(
-      `SELECT l.*, u.username, u.avatar_url
+      `SELECT l.*, u.username, u.avatar_url, u.display_name
        FROM lists l
        JOIN users u ON l.user_id = u.id
        WHERE l.id = $1`,
@@ -1471,35 +1733,62 @@ app.get('/api/lists/:id', async (req, res) => {
   }
 });
 
-// Add item to list
+// Add / Update item in list (Universal SQLite & PostgreSQL support)
 app.post('/api/lists/:id/items', authenticateToken, async (req, res) => {
   const listId = req.params.id;
-  const { tmdb_movie_id, media_type, title, poster_path, release_date } = req.body;
+  const { tmdb_movie_id, id, movieId, media_type, title, name, poster_path, release_date, first_air_date } = req.body;
+  
+  const finalMovieId = parseInt(tmdb_movie_id || id || movieId, 10);
+  if (!finalMovieId || isNaN(finalMovieId)) {
+    return res.status(400).json({ error: 'Valid Movie ID is required' });
+  }
+
+  const finalTitle = sanitizeText(title || name || `Film #${finalMovieId}`, 150);
+  const finalMediaType = media_type || 'movie';
+  const finalPoster = poster_path || null;
+  const finalReleaseDate = release_date || first_air_date || null;
+
   try {
     const list = await queryOne('SELECT user_id FROM lists WHERE id = $1', [listId]);
     if (!list) return res.status(404).json({ error: 'List not found' });
-    if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
+    if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to modify this list' });
 
-    await execute(
-      `INSERT INTO list_items (list_id, tmdb_movie_id, media_type, title, poster_path, release_date)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       ON CONFLICT (list_id, tmdb_movie_id) DO UPDATE SET title = EXCLUDED.title, poster_path = EXCLUDED.poster_path`,
-      [listId, tmdb_movie_id, media_type || 'movie', title, poster_path, release_date]
+    // Check if item exists in list
+    const existing = await queryOne(
+      'SELECT tmdb_movie_id FROM list_items WHERE list_id = $1 AND tmdb_movie_id = $2',
+      [listId, finalMovieId]
     );
-    res.json({ message: 'Item added to list successfully' });
+
+    if (existing) {
+      await execute(
+        'UPDATE list_items SET media_type = $1, title = $2, poster_path = $3, release_date = $4 WHERE list_id = $5 AND tmdb_movie_id = $6',
+        [finalMediaType, finalTitle, finalPoster, finalReleaseDate, listId, finalMovieId]
+      );
+    } else {
+      await execute(
+        'INSERT INTO list_items (list_id, tmdb_movie_id, media_type, title, poster_path, release_date) VALUES ($1, $2, $3, $4, $5, $6)',
+        [listId, finalMovieId, finalMediaType, finalTitle, finalPoster, finalReleaseDate]
+      );
+    }
+
+    await execute('UPDATE lists SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [listId]);
+    res.json({ message: 'Movie added to list successfully', movieId: finalMovieId });
   } catch (error) {
+    console.error('Error adding movie to list:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Remove item from list
 app.delete('/api/lists/:id/items/:movieId', authenticateToken, async (req, res) => {
+  const finalMovieId = parseInt(req.params.movieId, 10);
   try {
     const list = await queryOne('SELECT user_id FROM lists WHERE id = $1', [req.params.id]);
     if (!list) return res.status(404).json({ error: 'List not found' });
     if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized' });
 
-    await execute('DELETE FROM list_items WHERE list_id = $1 AND tmdb_movie_id = $2', [req.params.id, req.params.movieId]);
+    await execute('DELETE FROM list_items WHERE list_id = $1 AND tmdb_movie_id = $2', [req.params.id, finalMovieId]);
+    await execute('UPDATE lists SET updated_at = CURRENT_TIMESTAMP WHERE id = $1', [req.params.id]);
     res.json({ message: 'Item removed from list' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1513,6 +1802,7 @@ app.delete('/api/lists/:id', authenticateToken, async (req, res) => {
     if (!list) return res.status(404).json({ error: 'List not found' });
     if (list.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to delete list' });
 
+    await execute('DELETE FROM list_items WHERE list_id = $1', [req.params.id]);
     await execute('DELETE FROM lists WHERE id = $1', [req.params.id]);
     res.json({ message: 'List deleted successfully' });
   } catch (error) {
@@ -1866,38 +2156,87 @@ app.get('/api/movies/:id/excited', async (req, res) => {
 // --- SOCIAL / PROFILE ROUTES ---
 
 // Suggested users to follow
-app.get('/api/users/suggestions', authenticateToken, async (req, res) => {
+// Suggested users to follow
+const handleSuggestions = async (req, res) => {
   try {
-    const suggestions = await query(
-      `WITH user_movies AS (
-        SELECT DISTINCT tmdb_movie_id FROM reviews WHERE user_id = $1
-        UNION
-        SELECT DISTINCT tmdb_movie_id FROM diary WHERE user_id = $1
-        UNION
-        SELECT DISTINCT tmdb_movie_id FROM watchlist WHERE user_id = $1
-      ),
-      mutual_matches AS (
-        SELECT other.user_id, COUNT(*) as mutual_count
-        FROM (
-          SELECT user_id, tmdb_movie_id FROM reviews WHERE user_id != $1
+    const userId = req.user?.id;
+    let suggestions = [];
+    if (userId) {
+      suggestions = await query(
+        `WITH user_movies AS (
+          SELECT DISTINCT tmdb_movie_id FROM reviews WHERE user_id = $1
           UNION
-          SELECT user_id, tmdb_movie_id FROM diary WHERE user_id != $1
+          SELECT DISTINCT tmdb_movie_id FROM diary WHERE user_id = $1
           UNION
-          SELECT user_id, tmdb_movie_id FROM watchlist WHERE user_id != $1
-        ) other
-        JOIN user_movies um ON other.tmdb_movie_id = um.tmdb_movie_id
-        GROUP BY other.user_id
-      )
-      SELECT u.id, u.username, u.avatar_url, u.bio, COALESCE(mm.mutual_count, 0) as mutual_count
-      FROM users u
-      LEFT JOIN mutual_matches mm ON u.id = mm.user_id
-      WHERE u.id != $1
-        AND u.id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
-      ORDER BY mutual_count DESC, u.created_at DESC
-      LIMIT 10`,
-      [req.user.id]
-    );
+          SELECT DISTINCT tmdb_movie_id FROM watchlist WHERE user_id = $1
+        ),
+        mutual_matches AS (
+          SELECT other.user_id, COUNT(*) as mutual_count
+          FROM (
+            SELECT user_id, tmdb_movie_id FROM reviews WHERE user_id != $1
+            UNION
+            SELECT user_id, tmdb_movie_id FROM diary WHERE user_id != $1
+            UNION
+            SELECT user_id, tmdb_movie_id FROM watchlist WHERE user_id != $1
+          ) other
+          JOIN user_movies um ON other.tmdb_movie_id = um.tmdb_movie_id
+          GROUP BY other.user_id
+        )
+        SELECT u.id, u.username, u.avatar_url, u.bio, u.display_name, COALESCE(mm.mutual_count, 0) as mutual_count
+        FROM users u
+        LEFT JOIN mutual_matches mm ON u.id = mm.user_id
+        WHERE u.id != $1
+          AND u.id NOT IN (SELECT following_id FROM follows WHERE follower_id = $1)
+        ORDER BY mutual_count DESC, u.created_at DESC
+        LIMIT 10`,
+        [userId]
+      );
+    }
+
+    // If suggestions are empty, return active users
+    if (suggestions.length === 0) {
+      suggestions = await query(
+        `SELECT u.id, u.username, u.avatar_url, u.bio, u.display_name, 0 as mutual_count
+         FROM users u
+         ${userId ? 'WHERE u.id != $1' : ''}
+         ORDER BY u.created_at DESC
+         LIMIT 10`,
+        userId ? [userId] : []
+      );
+    }
+
     res.json(suggestions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+app.get('/api/users/suggestions', authenticateToken, handleSuggestions);
+app.get('/api/social/suggestions', authenticateToken, handleSuggestions);
+
+// Global Social Feed (All recent public reviews & watches)
+app.get('/api/social/global', async (req, res) => {
+  try {
+    const globalFeed = await query(
+      `SELECT 'review' as type, r.id as activity_id, r.created_at AS created_at, r.rating AS rating, r.review_text AS review_text, r.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.display_name AS display_name, u.id as user_id
+       FROM reviews r
+       JOIN users u ON r.user_id = u.id
+       JOIN diary d ON r.diary_id = d.id
+       WHERE r.review_text != '' AND d.status = 'watched'
+       
+       UNION ALL
+       
+       SELECT 'watch' as type, d.id as activity_id, d.created_at AS created_at, d.rating AS rating, NULL AS review_text, d.tmdb_movie_id AS tmdb_movie_id, u.username AS username, u.avatar_url AS avatar_url, u.display_name AS display_name, u.id as user_id
+       FROM diary d
+       JOIN users u ON d.user_id = u.id
+       LEFT JOIN reviews r ON d.review_id = r.id
+       WHERE d.status = 'watched' AND (d.review_id IS NULL OR r.review_text = '')
+       
+       ORDER BY created_at DESC
+       LIMIT 30`
+    );
+    const enrichedFeed = await enrichWithTMDBDetails(globalFeed);
+    res.json(enrichedFeed);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -2052,6 +2391,357 @@ app.get('/api/social/ticker', async (req, res) => {
        LIMIT 10`
     );
     res.json(recentLogs);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- TIME AGO HELPER ---
+function formatTimeAgo(dateInput) {
+  if (!dateInput) return 'just now';
+  const date = new Date(dateInput);
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return 'just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  if (diffSec < 2592000) return `${Math.floor(diffSec / 86400)}d ago`;
+  return date.toLocaleDateString();
+}
+
+// --- CINEMA SPACES COMMUNITY ROUTES ---
+
+// Get community space posts (with like/comment counts & author details)
+app.get('/api/spaces/posts', async (req, res) => {
+  try {
+    const category = req.query.category;
+    let userId = null;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id;
+      } catch (e) {}
+    }
+
+    let filterClause = '';
+    const params = [];
+    if (category && category !== 'all') {
+      params.push(category);
+      filterClause = `WHERE p.category = $${params.length}`;
+    }
+
+    const posts = await query(
+      `SELECT 
+        p.id, p.user_id, p.title, p.content, p.category, p.media_tag, p.tmdb_movie_id, p.video_embed_id, p.rating, p.created_at,
+        u.username, u.display_name, u.avatar_url,
+        (SELECT COUNT(*) FROM spaces_likes l WHERE l.post_id = p.id) AS likes,
+        (SELECT COUNT(*) FROM spaces_comments c WHERE c.post_id = p.id) AS comments_count
+        ${userId ? `, (SELECT 1 FROM spaces_likes l WHERE l.post_id = p.id AND l.user_id = '${userId}') AS is_liked` : ', 0 AS is_liked'}
+       FROM spaces_posts p
+       JOIN users u ON p.user_id = u.id
+       ${filterClause}
+       ORDER BY p.created_at DESC`,
+      params
+    );
+
+    const formatted = posts.map(p => ({
+      id: p.id,
+      author: {
+        userId: p.user_id,
+        username: p.username,
+        displayName: p.display_name || p.username,
+        avatarUrl: p.avatar_url,
+        badge: p.username === 'saptak_cinephile' ? 'Verified Critic' : p.username === 'nolan_purist' ? 'Top Reviewer' : 'Cinephile'
+      },
+      category: p.category,
+      title: p.title,
+      content: p.content,
+      mediaTag: p.media_tag,
+      mediaId: p.tmdb_movie_id,
+      videoEmbedId: p.video_embed_id,
+      rating: p.rating,
+      likes: parseInt(p.likes || 0),
+      commentsCount: parseInt(p.comments_count || 0),
+      isLiked: Boolean(p.is_liked),
+      time: formatTimeAgo(p.created_at),
+      createdAt: p.created_at
+    }));
+
+    res.json(formatted);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new community post in Spaces
+app.post('/api/spaces/posts', authenticateToken, async (req, res) => {
+  try {
+    const { title, content, category = 'discussion', media_tag, tmdb_movie_id, video_embed_id, rating } = req.body;
+    if (!title || !title.trim() || !content || !content.trim()) {
+      return res.status(400).json({ error: 'Title and content are required' });
+    }
+
+    const postId = 'sp_' + Math.random().toString(36).substr(2, 9);
+    const cleanTitle = sanitizeText(title, 255);
+    const cleanContent = sanitizeText(content, 10000);
+    const cleanTag = media_tag ? sanitizeText(media_tag, 120) : null;
+    const cleanEmbed = video_embed_id ? sanitizeText(video_embed_id, 50) : null;
+
+    await execute(
+      `INSERT INTO spaces_posts (id, user_id, title, content, category, media_tag, tmdb_movie_id, video_embed_id, rating)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [postId, req.user.id, cleanTitle, cleanContent, category, cleanTag, tmdb_movie_id ? parseInt(tmdb_movie_id) : null, cleanEmbed, rating ? parseFloat(rating) : null]
+    );
+
+    const user = await queryOne('SELECT username, display_name, avatar_url FROM users WHERE id = $1', [req.user.id]);
+
+    res.status(201).json({
+      id: postId,
+      author: {
+        userId: req.user.id,
+        username: user?.username,
+        displayName: user?.display_name || user?.username,
+        avatarUrl: user?.avatar_url,
+        badge: 'Cinephile'
+      },
+      category,
+      title: cleanTitle,
+      content: cleanContent,
+      mediaTag: cleanTag,
+      mediaId: tmdb_movie_id ? parseInt(tmdb_movie_id) : null,
+      videoEmbedId: cleanEmbed,
+      rating: rating ? parseFloat(rating) : null,
+      likes: 0,
+      commentsCount: 0,
+      isLiked: false,
+      time: 'just now',
+      createdAt: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Toggle like on a Spaces post
+app.post('/api/spaces/posts/:id/like', authenticateToken, async (req, res) => {
+  const postId = req.params.id;
+  try {
+    const post = await queryOne('SELECT id, user_id, title FROM spaces_posts WHERE id = $1', [postId]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const existingLike = await queryOne(
+      'SELECT 1 FROM spaces_likes WHERE post_id = $1 AND user_id = $2',
+      [postId, req.user.id]
+    );
+
+    let liked = false;
+    if (existingLike) {
+      await execute('DELETE FROM spaces_likes WHERE post_id = $1 AND user_id = $2', [postId, req.user.id]);
+      liked = false;
+    } else {
+      await execute('INSERT INTO spaces_likes (post_id, user_id) VALUES ($1, $2)', [postId, req.user.id]);
+      liked = true;
+
+      // Notification for post author
+      if (post.user_id !== req.user.id) {
+        const notifId = 'notif_' + Math.random().toString(36).substr(2, 9);
+        await execute(
+          `INSERT INTO notifications (id, user_id, type, title, body, link_url, is_read)
+           VALUES ($1, $2, 'like', 'Post Liked', $3, '/spaces', 0)`,
+          [notifId, post.user_id, `@${req.user.username} liked your post "${post.title.substring(0, 40)}..."`]
+        );
+      }
+    }
+
+    const countRes = await queryOne('SELECT COUNT(*) as count FROM spaces_likes WHERE post_id = $1', [postId]);
+    res.json({ liked, likesCount: parseInt(countRes?.count || 0) });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get comments for a Spaces post
+app.get('/api/spaces/posts/:id/comments', async (req, res) => {
+  try {
+    const comments = await query(
+      `SELECT c.id, c.post_id, c.user_id, c.comment_text, c.created_at,
+              u.username, u.display_name, u.avatar_url
+       FROM spaces_comments c
+       JOIN users u ON c.user_id = u.id
+       WHERE c.post_id = $1
+       ORDER BY c.created_at ASC`,
+      [req.params.id]
+    );
+
+    res.json(comments.map(c => ({
+      id: c.id,
+      postId: c.post_id,
+      userId: c.user_id,
+      commentText: c.comment_text,
+      createdAt: c.created_at,
+      time: formatTimeAgo(c.created_at),
+      user: {
+        id: c.user_id,
+        username: c.username,
+        displayName: c.display_name || c.username,
+        avatarUrl: c.avatar_url
+      }
+    })));
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Add comment to a Spaces post
+app.post('/api/spaces/posts/:id/comments', authenticateToken, async (req, res) => {
+  try {
+    const { comment_text } = req.body;
+    if (!comment_text || !comment_text.trim()) {
+      return res.status(400).json({ error: 'Comment text cannot be empty' });
+    }
+
+    const post = await queryOne('SELECT id, user_id, title FROM spaces_posts WHERE id = $1', [req.params.id]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+
+    const commentId = 'sc_' + Math.random().toString(36).substr(2, 9);
+    const cleanText = sanitizeText(comment_text, 2000);
+
+    await execute(
+      'INSERT INTO spaces_comments (id, post_id, user_id, comment_text) VALUES ($1, $2, $3, $4)',
+      [commentId, req.params.id, req.user.id, cleanText]
+    );
+
+    // Notify author if someone else commented
+    if (post.user_id !== req.user.id) {
+      const notifId = 'notif_' + Math.random().toString(36).substr(2, 9);
+      await execute(
+        `INSERT INTO notifications (id, user_id, type, title, body, link_url, is_read)
+         VALUES ($1, $2, 'comment', 'New Comment on Spaces', $3, '/spaces', 0)`,
+        [notifId, post.user_id, `@${req.user.username} commented on "${post.title.substring(0, 35)}...": "${cleanText.substring(0, 45)}..."`]
+      );
+    }
+
+    const user = await queryOne('SELECT username, display_name, avatar_url FROM users WHERE id = $1', [req.user.id]);
+
+    res.status(201).json({
+      id: commentId,
+      postId: req.params.id,
+      userId: req.user.id,
+      commentText: cleanText,
+      createdAt: new Date().toISOString(),
+      time: 'just now',
+      user: {
+        id: req.user.id,
+        username: user?.username,
+        displayName: user?.display_name || user?.username,
+        avatarUrl: user?.avatar_url
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete Spaces post
+app.delete('/api/spaces/posts/:id', authenticateToken, async (req, res) => {
+  try {
+    const post = await queryOne('SELECT user_id FROM spaces_posts WHERE id = $1', [req.params.id]);
+    if (!post) return res.status(404).json({ error: 'Post not found' });
+    if (post.user_id !== req.user.id) return res.status(403).json({ error: 'Unauthorized to delete this post' });
+
+    await execute('DELETE FROM spaces_posts WHERE id = $1', [req.params.id]);
+    res.json({ message: 'Post successfully deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// --- REAL NOTIFICATIONS ROUTES ---
+
+// Get notifications for current user + system announcements
+app.get('/api/notifications', async (req, res) => {
+  try {
+    let userId = null;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id;
+      } catch (e) {}
+    }
+
+    let notifRows = [];
+    if (userId) {
+      notifRows = await query(
+        `SELECT id, user_id, type, title, body, link_url, is_read, created_at
+         FROM notifications
+         WHERE user_id = $1 OR user_id IS NULL
+         ORDER BY created_at DESC
+         LIMIT 30`,
+        [userId]
+      );
+    } else {
+      notifRows = await query(
+        `SELECT id, user_id, type, title, body, link_url, is_read, created_at
+         FROM notifications
+         WHERE user_id IS NULL
+         ORDER BY created_at DESC
+         LIMIT 15`
+      );
+    }
+
+    const unreadCount = notifRows.filter(n => !n.is_read).length;
+
+    res.json({
+      notifications: notifRows.map(n => ({
+        id: n.id,
+        type: n.type || 'activity',
+        title: n.title,
+        body: n.body,
+        linkUrl: n.link_url || '#',
+        unread: Boolean(!n.is_read),
+        time: formatTimeAgo(n.created_at),
+        tag: n.type === 'update' ? 'Offer' : n.type === 'like' ? 'Social' : n.type === 'comment' ? 'Community' : 'System'
+      })),
+      unreadCount
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark single notification as read
+app.post('/api/notifications/:id/read', async (req, res) => {
+  try {
+    await execute('UPDATE notifications SET is_read = 1 WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark all notifications as read
+app.post('/api/notifications/read-all', async (req, res) => {
+  try {
+    let userId = null;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        userId = decoded.id;
+      } catch (e) {}
+    }
+
+    if (userId) {
+      await execute('UPDATE notifications SET is_read = 1 WHERE user_id = $1 OR user_id IS NULL', [userId]);
+    } else {
+      await execute('UPDATE notifications SET is_read = 1 WHERE user_id IS NULL');
+    }
+
+    res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

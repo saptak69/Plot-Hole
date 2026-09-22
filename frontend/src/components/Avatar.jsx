@@ -3,9 +3,9 @@ import { API_URL } from '../config';
 
 /**
  * Avatar Component
- * Luxury circular avatar with refined cinema palette fallback and custom image support.
+ * Clean, seamless cinema avatar with smooth shape inheritance and custom image support.
  */
-export default function Avatar({ username, url, className = "w-8 h-8" }) {
+export default function Avatar({ username, url, className = "w-8 h-8", rounded = "rounded-full" }) {
   const [imageError, setImageError] = useState(false);
   const firstLetter = username ? username.trim().charAt(0).toUpperCase() : '?';
   
@@ -22,23 +22,24 @@ export default function Avatar({ username, url, className = "w-8 h-8" }) {
     resolvedUrl.trim().length > 0;
 
   const bgGradient = username ? stringToGradient(username) : 'from-[#e50914] to-[#ffb800]';
+  const roundClass = className.includes('rounded-') ? '' : rounded;
 
   if (hasCustomAvatar) {
     return (
       <img
         src={resolvedUrl}
-        alt={username}
+        alt={username || 'Avatar'}
         onError={() => setImageError(true)}
-        className={`${className} object-cover shrink-0 rounded-full border border-white/20 shadow-md`}
+        className={`${className} ${roundClass} object-cover shrink-0 select-none block`}
       />
     );
   }
 
   return (
     <div
-      className={`${className} shrink-0 flex items-center justify-center font-display font-black text-white select-none border border-white/25 rounded-full shadow-md bg-gradient-to-br ${bgGradient}`}
+      className={`${className} ${roundClass} shrink-0 flex items-center justify-center font-display font-black text-white select-none bg-gradient-to-br ${bgGradient}`}
     >
-      <span className="text-[60%] leading-none drop-shadow-sm">{firstLetter}</span>
+      <span className="text-[55%] leading-none drop-shadow-sm">{firstLetter}</span>
     </div>
   );
 }
@@ -54,7 +55,7 @@ function stringToGradient(str) {
     'from-[#e50914] via-[#ff2e3b] to-[#ffb800]', // Netflix Red & Cinema Gold
     'from-[#b80710] via-[#e50914] to-[#f59e0b]', // Deep Ruby & Amber
     'from-rose-500 via-rose-600 to-amber-500',   // Crimson & Amber
-    'from-[#ff2e3b] via-[#ff3b5c] to-white',     // Scarlet Luster
+    'from-[#ff2e3b] via-[#ff3b5c] to-[#ff7b88]', // Scarlet Luster
     'from-amber-400 via-amber-500 to-[#e50914]', // Gold & Red
     'from-[#1e1e26] via-[#2a2a38] to-[#e50914]', // Obsidian & Red Spotlight
     'from-red-600 via-orange-500 to-amber-400',  // Fiery Cinema
