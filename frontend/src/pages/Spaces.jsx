@@ -443,8 +443,11 @@ export default function Spaces() {
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-[#101015] border border-white/8 rounded-3xl p-6 space-y-4">
-                <div className="h-6 w-1/3 rounded-xl bg-white/5 skeleton-shimmer" />
-                <div className="h-16 w-full rounded-2xl bg-white/5 skeleton-shimmer" />
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-white/5 skeleton-shimmer" />
+                  <div className="h-4 w-1/4 rounded-md bg-white/5 skeleton-shimmer" />
+                </div>
+                <div className="h-24 w-full rounded-2xl bg-white/5 skeleton-shimmer mt-4" />
               </div>
             ))}
           </div>

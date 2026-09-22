@@ -27,6 +27,7 @@ export default function TrailerHero({
   // Smooth Crossfade Double-Buffer State
   const [displayedMovie, setDisplayedMovie] = useState(movie);
   const [isCrossfading, setIsCrossfading] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   // Touch swipe support for mobile
   const touchStartX = useRef(0);
@@ -38,6 +39,7 @@ export default function TrailerHero({
 
     if (displayedMovie?.id !== movie.id) {
       setIsCrossfading(true);
+      setIsImageLoaded(false);
       const timer = setTimeout(() => {
         setDisplayedMovie(movie);
         setIsCrossfading(false);
@@ -68,6 +70,20 @@ export default function TrailerHero({
 
     if (preloadedVideos && Array.isArray(preloadedVideos) && preloadedVideos.length > 0) {
       parseTrailer(preloadedVideos);
+      return;
+    }
+
+    // Hardcoded guaranteed working keys for the default hero movies
+    if (movie.id === 693134) {
+      setVideoKey('Way9Dexny3w'); // Dune: Part Two
+      return;
+    }
+    if (movie.id === 872585) {
+      setVideoKey('uYPbbksJxIg'); // Oppenheimer
+      return;
+    }
+    if (movie.id === 157336) {
+      setVideoKey('zSWdZVtXT7E'); // Interstellar
       return;
     }
 
@@ -197,14 +213,21 @@ export default function TrailerHero({
         <div className="relative aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[380px] sm:min-h-[380px] md:min-h-[460px] w-full group overflow-hidden">
           {/* Smooth Crossfading Backdrop Image */}
           {backdropUrl ? (
-            <img
-              key={`bg-${activeMovie?.id}`}
-              src={backdropUrl}
-              alt={displayTitle}
-              className={`w-full h-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-103 ${
-                isCrossfading ? 'opacity-40 scale-102 blur-sm' : 'opacity-100 scale-100 blur-0'
-              }`}
-            />
+            <>
+              {/* Skeleton Placeholder */}
+              {!isImageLoaded && (
+                <div className="absolute inset-0 bg-[#101015] skeleton-shimmer z-0" />
+              )}
+              <img
+                key={`bg-${activeMovie?.id}`}
+                src={backdropUrl}
+                alt={displayTitle}
+                onLoad={() => setIsImageLoaded(true)}
+                className={`w-full h-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-103 ${
+                  isCrossfading || !isImageLoaded ? 'opacity-40 scale-102 blur-sm' : 'opacity-100 scale-100 blur-0'
+                }`}
+              />
+            </>
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-900 via-[#121218] to-black" />
           )}
@@ -262,9 +285,14 @@ export default function TrailerHero({
                   <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 group-hover/btn:bg-gradient-to-r group-hover/btn:from-[#e50914] group-hover/btn:to-[#ff3b47] group-hover/btn:text-white text-white flex items-center justify-center transition-all shadow-inner">
                     <Play className="w-4 h-4 fill-current ml-0.5" />
                   </div>
-                  <span className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-100 group-hover/btn:text-white">
-                    Watch Trailer
-                  </span>
+                  <div className="flex flex-col items-start justify-center text-left">
+                    <span className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-100 group-hover/btn:text-white leading-none">
+                      Watch Trailer
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 group-hover/btn:text-white/80 mt-1 uppercase tracking-wide">
+                      Plays In-App
+                    </span>
+                  </div>
                 </button>
               </GlassSurface>
             </div>

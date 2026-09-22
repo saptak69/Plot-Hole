@@ -52,7 +52,7 @@ export default function Home({ onOpenPerson }) {
   const [isTrailerActive, setIsTrailerActive] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [leaderboardTimeframe, setLeaderboardTimeframe] = useState('week');
-  const [copiedCoupon, setCopiedCoupon] = useState(false);
+
 
   // Sync category if URL search param changes
   useEffect(() => {
@@ -94,36 +94,27 @@ export default function Home({ onOpenPerson }) {
     setHeroIndex((prev) => (prev + 1) % featuredList.length);
   };
 
-  const copyCouponCode = () => {
-    navigator.clipboard.writeText('PLOT100');
-    setCopiedCoupon(true);
-    toast.addToast('Coupon PLOT100 copied to clipboard! FLAT ₹100 OFF applied.', 'success');
-    setTimeout(() => setCopiedCoupon(false), 2500);
-  };
-
   // Most Interested Leaderboard with verified real TMDB assets
   const mostInterestedData = {
     week: [
-      { rank: 1, title: 'Dune: Part Two', type: 'movie', venue: 'In Theatres (IMAX)', date: 'Now Showing', hype: '14.8k', poster: '/6izwz7rsy95ARzTR3poZ8H6c5pp.jpg', id: 693134 },
-      { rank: 2, title: 'Spider-Man: Brand New Day', type: 'movie', venue: 'Theatrical', date: 'Trending', hype: '12.4k', poster: '/bjiS5ipwxb9JFy3XRRN4OAilSeX.jpg', id: 969681 },
-      { rank: 3, title: 'Severance', type: 'tv', venue: 'Apple TV+', date: 'Weekly', hype: '9.6k', poster: '/pPHpeI2X1qEd1CS1SeyrdhZ4qnT.jpg', id: 95396 },
-      { rank: 4, title: 'Interstellar', type: 'movie', venue: 'IMAX Re-Release', date: 'Vault', hype: '8.1k', poster: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', id: 157336 },
-      { rank: 5, title: 'The Dark Knight', type: 'movie', venue: 'JioHotstar', date: 'Masterpiece', hype: '7.7k', poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', id: 155 }
-    ],
-    month: [
-      { rank: 1, title: 'Oppenheimer', type: 'movie', venue: 'JioHotstar', date: 'Streaming', hype: '24.2k', poster: '/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg', id: 872585 },
-      { rank: 2, title: 'Dune: Part Two', type: 'movie', venue: 'In Theatres', date: 'Top Grossing', hype: '21.8k', poster: '/6izwz7rsy95ARzTR3poZ8H6c5pp.jpg', id: 693134 },
-      { rank: 3, title: 'Shutter Island', type: 'movie', venue: 'Netflix', date: 'Neo-Noir', hype: '18.5k', poster: '/nrmXQ0zcZUL8jFLrakWc90IR8z9.jpg', id: 11324 },
-      { rank: 4, title: 'Whiplash', type: 'movie', venue: 'Prime Video', date: 'Drama', hype: '16.8k', poster: '/7fn624j5lj3xTme2SgiLCeuedmO.jpg', id: 244786 },
-      { rank: 5, title: 'The Shawshank Redemption', type: 'movie', venue: 'JioHotstar', date: 'All Time #1', hype: '15.4k', poster: '/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg', id: 278 }
-    ],
-    all: [
-      { rank: 1, title: 'The Godfather', type: 'movie', venue: 'Classics', date: '1972', hype: '92.4k', poster: '/3bhkrj58Vtu7enYsRolD1fZdja1.jpg', id: 238 },
-      { rank: 2, title: 'Pulp Fiction', type: 'movie', venue: 'Classics', date: '1994', hype: '88.1k', poster: '/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg', id: 680 },
-      { rank: 3, title: 'Interstellar', type: 'movie', venue: 'Sci-Fi Vault', date: '2014', hype: '85.6k', poster: '/yQvGrMoipbRoddT0ZR8tPoR7NfX.jpg', id: 157336 },
-      { rank: 4, title: 'The Dark Knight', type: 'movie', venue: 'Mind-Bender', date: '2008', hype: '81.9k', poster: '/qJ2tW6WMUDux911r6m7haRef0WH.jpg', id: 155 },
-      { rank: 5, title: 'Dune', type: 'movie', venue: 'JioHotstar', date: '2021', hype: '79.2k', poster: '/v1tRXZ4JtD2Iv6fjkPvT4GiwslV.jpg', id: 438631 }
-    ]
+  // Dynamically generate leaderboard data based on actual TMDB data and popularity
+  const formatLeaderboard = (movies) => {
+    return (movies || []).slice(0, 5).map((m, idx) => ({
+      rank: idx + 1,
+      title: m.title || m.name,
+      type: m.name ? 'tv' : 'movie',
+      venue: m.name ? 'Series' : 'Feature Film',
+      date: (m.release_date || m.first_air_date || '').split('-')[0] || 'TBA',
+      hype: m.popularity ? (m.popularity > 1000 ? (m.popularity / 1000).toFixed(1) + 'k' : Math.round(m.popularity).toString()) : '-',
+      poster: m.poster_path,
+      id: m.id
+    }));
+  };
+
+  const mostInterestedData = {
+    week: formatLeaderboard(nowPlayingMovies.length > 0 ? nowPlayingMovies : popularMovies),
+    month: formatLeaderboard(popularMovies),
+    all: formatLeaderboard(topRatedMovies)
   };
 
   const currentLeaderboard = mostInterestedData[leaderboardTimeframe] || mostInterestedData.week;
@@ -242,54 +233,6 @@ export default function Home({ onOpenPerson }) {
             )}
           </div>
 
-          {/* District Cinema Partner Promo Banner (Moctale Feature Equivalent) */}
-          <section className="relative rounded-3xl overflow-hidden border border-[#ff6b00]/30 bg-gradient-to-br from-[#181210] via-[#101015] to-[#0a0a0e] p-6 sm:p-7 shadow-[0_10px_35px_rgba(0,0,0,0.7),0_0_25px_rgba(255,107,0,0.12)]">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#ff6b00]/15 via-[#e50914]/10 to-transparent pointer-events-none blur-3xl" />
-            
-            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-lg">
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-[#ff6b00]/15 border border-[#ff6b00]/30 text-[10px] font-mono font-bold text-[#ffa033] uppercase tracking-wider">
-                  <Ticket className="w-3.5 h-3.5" />
-                  <span>District Partner Perk</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-display font-black text-white tracking-tight">
-                  FLAT ₹100/- OFF ON 2 CINEMA TICKETS
-                </h3>
-                <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                  Valid across PVR, INOX, and Cinepolis booking counters through the District Partner Program. Mind the gap and experience pure cinema on the biggest screen.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:items-end gap-3 shrink-0 w-full sm:w-auto">
-                <button
-                  onClick={copyCouponCode}
-                  className="flex items-center justify-between sm:justify-center gap-3 px-4 py-2.5 rounded-2xl bg-black/60 hover:bg-black/80 border border-[#ff6b00]/40 text-xs font-mono font-bold text-white transition-all cursor-pointer group shadow-inner"
-                >
-                  <span className="text-[#ffa033]">CODE:</span>
-                  <span className="tracking-widest text-sm font-black text-white">PLOT100</span>
-                  {copiedCoupon ? (
-                    <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  ) : (
-                    <Copy className="w-4 h-4 text-slate-400 group-hover:text-white shrink-0" />
-                  )}
-                </button>
-
-                <a
-                  href="https://in.bookmyshow.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-fire py-2.5 px-6 rounded-2xl text-xs font-display font-bold uppercase tracking-wider text-center"
-                >
-                  Book Tickets Now ↗
-                </a>
-              </div>
-            </div>
-          </section>
-
-          {/* Editor's Pick of the Week */}
-          {editorPick && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between border-b border-white/8 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
                   <h2 className="font-display font-black text-xl sm:text-2xl text-white tracking-tight">
@@ -478,7 +421,7 @@ export default function Home({ onOpenPerson }) {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar username={rev.username} url={rev.avatar_url} className="w-7 h-7 ring-1 ring-white/15" />
-                          <Link to={`/profile/${rev.username}`} className="font-sans font-bold text-xs text-slate-200 hover:text-[#ffa033] truncate block">
+                          <Link to={`/profile/${rev.username}`} className="font-sans font-bold text-xs text-slate-200 hover:text-[#ffa033]">
                             @{rev.username}
                           </Link>
                         </div>
@@ -513,34 +456,7 @@ export default function Home({ onOpenPerson }) {
         {/* Right Sticky Sidebar (Leaderboard, District Perk, Merch, Spaces) */}
         <aside className="space-y-6 lg:sticky lg:top-20">
 
-          {/* Cinema Booking Card Widget */}
-          <div className="rounded-3xl p-5 border border-[#ff6b00]/30 bg-gradient-to-b from-[#181210] to-[#0e0e13] shadow-xl space-y-4">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#ffa033] uppercase">
-              <Ticket className="w-4 h-4 text-[#ff6b00]" />
-              <span>Cinema Booking Perk</span>
-            </div>
 
-            <p className="text-sm font-display font-bold text-white">
-              Flat ₹100 OFF with PlotHole Cinema Pass
-            </p>
-
-            <button
-              onClick={copyCouponCode}
-              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-black/70 border border-[#ff6b00]/40 text-xs font-mono font-bold text-white cursor-pointer hover:bg-black/90 transition-all"
-            >
-              <span className="text-[#ffa033]">CODE: PLOT100</span>
-              {copiedCoupon ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
-            </button>
-
-            <a
-              href="https://in.bookmyshow.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-fire w-full py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-center block"
-            >
-              Book Tickets Now ↗
-            </a>
-          </div>
 
           {/* Most Interested Leaderboard (Moctale's Exact Feature) */}
           <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-4">
@@ -622,66 +538,7 @@ export default function Home({ onOpenPerson }) {
             </Link>
           </div>
 
-          {/* Featured Cinephile Merch / Artbooks (Moctale Feature Equivalent) */}
-          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-3.5">
-            <div className="flex items-center justify-between border-b border-white/8 pb-2.5">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-[#ff6b00] uppercase">
-                <ShoppingBag className="w-4 h-4" />
-                <span>Cinephile Merch & Books</span>
-              </div>
-              <span className="text-[10px] font-mono text-slate-400">Curated</span>
-            </div>
 
-            <div className="p-3 rounded-2xl bg-black/40 border border-white/6 space-y-2.5">
-              <div className="flex gap-3 items-center">
-                <div className="w-12 h-16 rounded-lg overflow-hidden bg-[#181822] shrink-0 border border-white/10">
-                  <img
-                    src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=200&auto=format&fit=crop"
-                    alt="The Art and Soul of Dune"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <p className="font-display font-bold text-xs text-white truncate">The Art and Soul of Dune</p>
-                  <p className="text-[11px] font-mono text-slate-400">Hardcover Screenplay</p>
-                  <p className="text-xs font-mono font-bold text-[#ffa033]">₹2,499</p>
-                </div>
-              </div>
-              <a
-                href="https://www.amazon.in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full block text-center py-1.5 rounded-xl bg-white/6 hover:bg-white/12 text-[11px] font-display font-semibold text-slate-200 transition-colors"
-              >
-                View on Store ↗
-              </a>
-            </div>
-
-            <div className="p-3 rounded-2xl bg-black/40 border border-white/6 space-y-2.5">
-              <div className="flex gap-3 items-center">
-                <div className="w-12 h-16 rounded-lg overflow-hidden bg-[#181822] shrink-0 border border-white/10">
-                  <img
-                    src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=200&auto=format&fit=crop"
-                    alt="Doctor Doom: Books of Doom"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="space-y-0.5 min-w-0">
-                  <p className="font-display font-bold text-xs text-white truncate">Doctor Doom: Books of Doom</p>
-                  <p className="text-[11px] font-mono text-slate-400">Marvel Omnibus Classic</p>
-                  <p className="text-xs font-mono font-bold text-[#ffa033]">₹3,199</p>
-                </div>
-              </div>
-              <a
-                href="https://www.amazon.in"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full block text-center py-1.5 rounded-xl bg-white/6 hover:bg-white/12 text-[11px] font-display font-semibold text-slate-200 transition-colors"
-              >
-                View on Store ↗
-              </a>
-            </div>
-          </div>
 
           {/* Quick Jump to Spaces */}
           <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-3">

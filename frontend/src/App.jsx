@@ -99,10 +99,10 @@ function MainLayout() {
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
-                <Link to="/" className="hover:text-[#e50914] transition-colors">Discover</Link>
-                <Link to="/social" className="hover:text-[#e50914] transition-colors">Community Feed</Link>
-                <Link to="/lists" className="hover:text-[#e50914] transition-colors">Curated Lists</Link>
-                <Link to="/search" className="hover:text-[#e50914] transition-colors">Search Vault</Link>
+                <Link to="/" className="hover:text-[#e50914] transition-colors">Explore</Link>
+                <Link to="/schedule" className="hover:text-[#e50914] transition-colors">Schedule</Link>
+                <Link to="/spaces" className="hover:text-[#e50914] transition-colors">Spaces</Link>
+                <Link to="/lists" className="hover:text-[#e50914] transition-colors">Collections</Link>
               </div>
             </div>
 

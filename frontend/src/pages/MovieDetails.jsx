@@ -578,53 +578,7 @@ export default function MovieDetails({ onOpenPerson }) {
               </div>
             </div>
 
-            {/* ================= DISTRICT CINEMA PARTNER TICKETING ================= */}
-            <div className="p-5 rounded-3xl border border-[#ff5500]/30 bg-gradient-to-br from-[#1b120c] via-[#120d09] to-[#0a0807] shadow-[0_10px_35px_rgba(255,85,0,0.15)] space-y-3 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-28 h-28 bg-[#ff5500]/10 rounded-full blur-2xl pointer-events-none" />
-              
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono uppercase font-bold tracking-widest text-[#ffa033] flex items-center gap-1.5">
-                  <Ticket className="w-3.5 h-3.5" /> District Cinema Partner
-                </span>
-                <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#ff5500]/20 text-[#ffa033] border border-[#ff5500]/40 font-bold uppercase">
-                  Verified Perk
-                </span>
-              </div>
 
-              <div>
-                <h4 className="font-display font-black text-sm text-white leading-snug">
-                  Watch in Theatres with Flat ₹100 OFF
-                </h4>
-                <p className="text-[11px] font-sans text-slate-300 mt-1 leading-relaxed">
-                  Book 2 or more tickets at partner multiplexes nationwide using PlotHole cinema perk.
-                </p>
-              </div>
-
-              {/* Coupon Box */}
-              <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/60 border border-dashed border-[#ff5500]/50 font-mono text-xs">
-                <div>
-                  <span className="text-[9px] text-slate-400 block uppercase">Promo Code</span>
-                  <span className="font-black text-white tracking-widest text-sm text-[#ffa033]">PLOT100</span>
-                </div>
-                <button
-                  onClick={copyCouponCode}
-                  className="px-3 py-1.5 rounded-lg bg-[#ff5500] hover:bg-[#ff6b00] text-white font-bold text-[11px] flex items-center gap-1 shadow-md transition-all cursor-pointer"
-                >
-                  {copiedCoupon ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedCoupon ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
-
-              <a
-                href="https://district.in"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-2 rounded-xl bg-white/8 hover:bg-white/14 border border-white/12 text-slate-200 hover:text-white font-display text-[11px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <span>Book Tickets on District</span>
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            </div>
 
             {/* Where to Stream (Streaming Services) */}
             {flatrateProviders.length > 0 && (
@@ -745,24 +699,30 @@ export default function MovieDetails({ onOpenPerson }) {
                     <div
                       key={actor.id}
                       onClick={() => onOpenPerson?.(actor.id)}
-                      className="min-w-[170px] sm:min-w-0 p-3 rounded-2xl border border-white/8 bg-[#121218]/90 hover:border-white/25 hover:bg-[#181822] transition-all flex items-center gap-3 cursor-pointer shadow-md shrink-0"
+                      className="group min-w-[170px] sm:min-w-0 p-3 rounded-2xl border border-white/8 bg-[#121218]/90 hover:border-white/25 hover:bg-[#181822] transition-all flex items-center gap-3 cursor-pointer shadow-md shrink-0 hover:-translate-y-1 hover:shadow-xl hover:shadow-[#e50914]/10"
                     >
-                      <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-slate-900">
+                      <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 ring-1 ring-white/15 bg-slate-900 group-hover:ring-[#e50914]/50 transition-all">
                         {actor.profile_path ? (
                           <img
                             src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
                             alt={actor.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
                         ) : (
-                          <User className="w-5 h-5 text-slate-500 m-auto mt-3" />
+                          <User className="w-5 h-5 text-slate-500 m-auto mt-3 group-hover:text-[#e50914]/70 transition-colors" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="font-display font-bold text-xs text-white truncate block">
+                        <span 
+                          className="font-display font-bold text-xs text-white block leading-tight group-hover:text-[#ff4d5a] transition-colors"
+                          title={actor.name}
+                        >
                           {actor.name}
                         </span>
-                        <span className="text-[10px] text-slate-400 truncate block mt-0.5 font-sans">
+                        <span 
+                          className="text-[10px] text-slate-400 block leading-tight mt-0.5 font-sans"
+                          title={actor.character || 'Cast Member'}
+                        >
                           {actor.character || 'Cast Member'}
                         </span>
                       </div>
@@ -951,10 +911,23 @@ export default function MovieDetails({ onOpenPerson }) {
                   </div>
 
                   {reviewsData.length === 0 ? (
-                    <div className="p-8 rounded-2xl border border-white/8 bg-black/30 text-center space-y-2">
-                      <MessageSquare className="w-8 h-8 text-slate-600 mx-auto" />
-                      <p className="text-slate-300 text-xs font-semibold">No member reviews recorded yet.</p>
-                      <p className="text-slate-500 text-[11px] font-mono">Be the first to share your verdict on {displayTitle}!</p>
+                    <div className="p-10 rounded-3xl border border-white/10 bg-gradient-to-b from-[#14141c] to-[#070709] text-center space-y-4 shadow-xl">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto ring-1 ring-white/10 shadow-inner">
+                        <MessageSquare className="w-8 h-8 text-[#ff4d5a]" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <h4 className="text-white text-lg font-display font-bold">No Reviews Yet</h4>
+                        <p className="text-slate-400 text-xs font-sans max-w-sm mx-auto leading-relaxed">
+                          The archive is empty. Be the first cinephile to share your verdict on <span className="text-slate-200 font-semibold">{displayTitle}</span>.
+                        </p>
+                      </div>
+                      {!user && (
+                        <div className="pt-2">
+                          <Link to="/login" className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold font-sans transition-colors">
+                            Sign In to Review
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="space-y-3.5">

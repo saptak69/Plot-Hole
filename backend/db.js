@@ -413,7 +413,7 @@ export async function initDb() {
           nolanPurist = { id: nolanId };
         }
 
-        // Insert initial posts into database
+        const now = Date.now();
         const posts = [
           {
             id: 'sp_dune2',
@@ -424,7 +424,8 @@ export async function initDb() {
             media_tag: 'Dune: Part Two (2024)',
             tmdb_movie_id: 693134,
             video_embed_id: 'Way9Dexny3w',
-            rating: 4.0
+            rating: 4.0,
+            created_at: new Date(now - 1000 * 60 * 45).toISOString() // 45 mins ago
           },
           {
             id: 'sp_interstellar',
@@ -435,7 +436,8 @@ export async function initDb() {
             media_tag: 'Interstellar (2014)',
             tmdb_movie_id: 157336,
             video_embed_id: null,
-            rating: 4.0
+            rating: 4.0,
+            created_at: new Date(now - 1000 * 60 * 60 * 4).toISOString() // 4 hours ago
           },
           {
             id: 'sp_oppenheimer',
@@ -446,7 +448,8 @@ export async function initDb() {
             media_tag: 'Oppenheimer (2023)',
             tmdb_movie_id: 872585,
             video_embed_id: 'uYPbbksJxIg',
-            rating: 4.0
+            rating: 4.0,
+            created_at: new Date(now - 1000 * 60 * 60 * 24).toISOString() // 1 day ago
           },
           {
             id: 'sp_pulpfiction',
@@ -457,15 +460,16 @@ export async function initDb() {
             media_tag: 'Pulp Fiction (1994)',
             tmdb_movie_id: 680,
             video_embed_id: null,
-            rating: 4.0
+            rating: 4.0,
+            created_at: new Date(now - 1000 * 60 * 60 * 48).toISOString() // 2 days ago
           }
         ];
 
         for (const p of posts) {
           await execute(
-            `INSERT INTO spaces_posts (id, user_id, category, title, content, media_tag, tmdb_movie_id, video_embed_id, rating)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-            [p.id, p.user_id, p.category, p.title, p.content, p.media_tag, p.tmdb_movie_id, p.video_embed_id, p.rating]
+            `INSERT INTO spaces_posts (id, user_id, category, title, content, media_tag, tmdb_movie_id, video_embed_id, rating, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $10)`,
+            [p.id, p.user_id, p.category, p.title, p.content, p.media_tag, p.tmdb_movie_id, p.video_embed_id, p.rating, p.created_at]
           );
         }
 

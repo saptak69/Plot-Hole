@@ -12,6 +12,66 @@ import GlassSurface from '../components/GlassSurface';
 import GlassTabBar from '../components/GlassTabBar';
 import GlassCard from '../components/GlassCard';
 
+function ListPosterGrid({ posters, listId }) {
+  if (!posters || posters.length === 0) {
+    return (
+      <div className="w-full h-32 sm:h-40 bg-black/40 rounded-xl border border-white/5 flex items-center justify-center">
+        <Film className="w-6 h-6 text-slate-600" />
+      </div>
+    );
+  }
+
+  // Graceful degradation for < 4 posters
+  if (posters.length === 1) {
+    return (
+      <Link to={`/collections/${listId}`} className="block w-full h-32 sm:h-40 rounded-xl overflow-hidden border border-white/12 hover:border-[#ff6b00] transition-colors relative group">
+        <img src={getPosterUrl(posters[0], 'w342')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      </Link>
+    );
+  }
+  
+  if (posters.length === 2) {
+    return (
+      <Link to={`/collections/${listId}`} className="grid grid-cols-2 gap-1 h-32 sm:h-40 rounded-xl overflow-hidden border border-white/12 hover:border-[#ff6b00] transition-colors group">
+        {posters.map((p, i) => (
+          <div key={i} className="relative w-full h-full overflow-hidden">
+             <img src={getPosterUrl(p, 'w185')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          </div>
+        ))}
+      </Link>
+    );
+  }
+
+  if (posters.length === 3) {
+    return (
+      <Link to={`/collections/${listId}`} className="grid grid-cols-2 gap-1 h-32 sm:h-40 rounded-xl overflow-hidden border border-white/12 hover:border-[#ff6b00] transition-colors group">
+         <div className="col-span-1 row-span-2 relative w-full h-full overflow-hidden">
+             <img src={getPosterUrl(posters[0], 'w185')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+         </div>
+         <div className="flex flex-col gap-1 w-full h-full">
+           <div className="relative w-full h-full overflow-hidden">
+               <img src={getPosterUrl(posters[1], 'w185')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+           </div>
+           <div className="relative w-full h-full overflow-hidden">
+               <img src={getPosterUrl(posters[2], 'w185')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+           </div>
+         </div>
+      </Link>
+    );
+  }
+
+  // 4 or more
+  return (
+    <Link to={`/collections/${listId}`} className="grid grid-cols-2 grid-rows-2 gap-1 h-32 sm:h-40 rounded-xl overflow-hidden border border-white/12 hover:border-[#ff6b00] transition-colors group">
+      {posters.slice(0, 4).map((p, i) => (
+        <div key={i} className="relative w-full h-full overflow-hidden">
+           <img src={getPosterUrl(p, 'w185')} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+        </div>
+      ))}
+    </Link>
+  );
+}
+
 export const CURATED_COLLECTIONS = [
   {
     id: 'curated_1',
@@ -650,10 +710,14 @@ export default function ListsPage() {
                       </div>
 
                       <Link to={`/collections/${lst.id}`}>
-                        <h3 className="font-display font-black text-lg sm:text-xl text-slate-100 hover:text-[#ff3b47] transition-colors line-clamp-1 tracking-tight">
+                        <h3 className="font-display font-black text-lg sm:text-xl text-slate-100 hover:text-[#ff3b47] transition-colors leading-tight tracking-tight">
                           {lst.title}
                         </h3>
                       </Link>
+
+                      <div className="pt-2">
+                        <ListPosterGrid posters={lst.preview_posters ? lst.preview_posters.split(',') : []} listId={lst.id} />
+                      </div>
 
                       {lst.description && (
                         <p className="font-sans text-xs text-slate-300 mt-2 line-clamp-2 italic leading-relaxed">
@@ -714,22 +778,8 @@ export default function ListsPage() {
                       "{col.description}"
                     </p>
 
-                    {/* Film Postcard Stack Preview */}
-                    <div className="flex items-center gap-2 pt-2">
-                      {col.items.map((m) => (
-                        <Link
-                          key={m.tmdb_movie_id}
-                          to={`/media/movie/${m.tmdb_movie_id}`}
-                          className="w-14 h-20 rounded-xl overflow-hidden border border-white/12 hover:scale-105 hover:border-[#ff6b00] transition-all shadow-md shrink-0"
-                          title={m.title}
-                        >
-                          <img
-                            src={getPosterUrl(m.poster_path, 'w185')}
-                            alt={m.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </Link>
-                      ))}
+                    <div className="pt-2">
+                      <ListPosterGrid posters={col.preview_posters || []} listId={col.id} />
                     </div>
                   </div>
 

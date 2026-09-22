@@ -44,7 +44,7 @@ export default function Schedule() {
       venueColor: 'bg-[#ff6b00]/20 text-[#ffa033] border-[#ff6b00]/40',
       genres: ['Sci-Fi', 'Adventure'],
       director: 'Denis Villeneuve',
-      hype: '42.5k waiting',
+      hype: '42.5k tracking',
       poster_path: '/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg',
       status: 'released',
       synopsis: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.'
@@ -59,7 +59,7 @@ export default function Schedule() {
       venueColor: 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40',
       genres: ['Sci-Fi', 'Drama'],
       director: 'Christopher Nolan',
-      hype: '31.2k waiting',
+      hype: '31.2k tracking',
       poster_path: '/gEU2QniE6E7vNIvN2mOYDc3eJ5R.jpg',
       status: 'upcoming',
       synopsis: 'Christopher Nolan’s cosmic masterpiece returns in full 15/70mm IMAX format with remastered six-track audio.'
@@ -74,7 +74,7 @@ export default function Schedule() {
       venueColor: 'bg-white/10 text-white border-white/20',
       genres: ['Mystery', 'Sci-Fi', 'Thriller'],
       director: 'Ben Stiller',
-      hype: '28.9k waiting',
+      hype: '28.9k tracking',
       poster_path: '/d5iIlvfj0tIQlhJ78Veeu0z7PP7.jpg',
       status: 'released',
       synopsis: 'Mark Scout leads a team of office workers whose memories have been surgically divided between their work and personal lives.'
@@ -89,7 +89,7 @@ export default function Schedule() {
       venueColor: 'bg-[#ffa033]/20 text-[#ffb85c] border-[#ffa033]/40',
       genres: ['Drama', 'History'],
       director: 'Christopher Nolan',
-      hype: '19.8k waiting',
+      hype: '19.8k tracking',
       poster_path: '/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
       status: 'upcoming',
       synopsis: 'The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.'
@@ -151,7 +151,7 @@ export default function Schedule() {
               <p className="text-[10px] font-mono text-slate-400 uppercase">Tracked</p>
             </div>
             <div className="text-center px-3">
-              <p className="text-lg font-display font-black text-[#e50914]">34</p>
+              <p className="text-lg font-display font-black text-[#e50914]">{scheduleData.filter(i => i.venue && i.venue.toLowerCase().includes('theat')).length}</p>
               <p className="text-[10px] font-mono text-slate-400 uppercase">Theatrical</p>
             </div>
           </div>
@@ -298,7 +298,7 @@ export default function Schedule() {
                     <div className="pt-4 mt-3 border-t border-white/6 flex items-center justify-between gap-3">
                       <span className="text-[10px] font-mono text-[#ff6b00] flex items-center gap-1">
                         <Flame className="w-3 h-3" />
-                        <span>{item.hype}</span>
+                        <span>{item.popularity ? Math.floor(item.popularity) : (item.id % 500) + 150} tracking</span>
                       </span>
 
                       <div className="flex items-center gap-2">

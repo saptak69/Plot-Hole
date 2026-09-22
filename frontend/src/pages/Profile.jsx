@@ -675,7 +675,7 @@ export default function Profile() {
                         Collection
                       </span>
                       <Link to={`/lists/${lst.id}`}>
-                        <h4 className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors line-clamp-1 pt-1">
+                        <h4 className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors leading-tight pt-1">
                           {lst.title}
                         </h4>
                       </Link>

@@ -3,7 +3,24 @@ import { AlertOctagon, MinusCircle, Ticket, ThumbsUp, Trophy, Star } from 'lucid
 import { getRatingInfo } from '../config';
 
 export default function RatingBadge({ rating, size = 'sm', showIcon = true, className = '' }) {
-  const ratingInfo = getRatingInfo(rating);
+  const normalizeRating = (r) => {
+    if (typeof r === 'number' || !isNaN(Number(r))) return Number(r);
+    const legacyMap = {
+      'bullshit': 1,
+      'meh': 1,
+      'skip': 1,
+      'one-time': 2,
+      'timepass': 2,
+      'good watch': 3,
+      'go for it': 3,
+      'pure cinema': 4,
+      'perfection': 4
+    };
+    return legacyMap[r?.toString().toLowerCase()] || r;
+  };
+
+  const normalizedRating = normalizeRating(rating);
+  const ratingInfo = getRatingInfo(normalizedRating);
   
   // Red, Orange, Amber & Charcoal Cinema Rating Badges
   const tierConfig = {
@@ -35,7 +52,7 @@ export default function RatingBadge({ rating, size = 'sm', showIcon = true, clas
   };
 
 
-  const currentTier = tierConfig[rating] || {
+  const currentTier = tierConfig[normalizedRating] || {
     style: 'bg-white/6 text-slate-300 border-white/10',
     icon: Star,
     label: ratingInfo?.label || 'Rating'

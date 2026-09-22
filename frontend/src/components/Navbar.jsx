@@ -247,96 +247,7 @@ export default function Navbar() {
           {/* Right: Browse Categories, Notifications, Search & Profile */}
           <div className="flex items-center justify-end gap-2 sm:gap-2.5">
 
-            {/* Browse Categories Dropdown Trigger */}
-            <div className="relative hidden md:block" ref={categoriesRef}>
-              <button
-                onClick={() => setIsCategoriesOpen(!isCategoriesOpen)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-display font-semibold transition-all border cursor-pointer ${
-                  isCategoriesOpen
-                    ? 'bg-white/12 border-[#ff6b00]/60 text-white shadow-[0_0_15px_rgba(255,107,0,0.25)]'
-                    : 'bg-white/6 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5 text-[#ff6b00]" />
-                <span className="hidden xl:inline">Categories</span>
-                <ChevronDown className={`w-3 h-3 transition-transform ${isCategoriesOpen ? 'rotate-180 text-[#ff6b00]' : 'text-slate-400'}`} />
-              </button>
 
-              {/* Categories Mega Popover */}
-              {isCategoriesOpen && (
-                <div
-                  className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(255,107,0,0.15)] p-4.5 z-50 text-left animate-fade-up"
-                  onClick={() => setIsCategoriesOpen(false)}
-                >
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
-                        Curated Highlights
-                      </p>
-                      <div className="grid grid-cols-2 gap-1.5 pt-2">
-                        <Link to="/explore?filter=trending" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <Flame className="w-3.5 h-3.5 text-[#e50914]" />
-                          <span>Talk of the Town</span>
-                        </Link>
-                        <Link to="/explore?filter=top100" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <Trophy className="w-3.5 h-3.5 text-[#ffa033]" />
-                          <span>Top 100 All Time</span>
-                        </Link>
-                        <Link to="/schedule" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <Calendar className="w-3.5 h-3.5 text-[#ff6b00]" />
-                          <span>Release Radar</span>
-                        </Link>
-                        <Link to="/collections?tab=discover" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <Bookmark className="w-3.5 h-3.5 text-[#ff3b47]" />
-                          <span>Staff Playlists</span>
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
-                        Streaming Platforms
-                      </p>
-                      <div className="grid grid-cols-2 gap-1.5 pt-2">
-                        <Link to="/search?q=Netflix" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-[#e50914] shadow-[0_0_8px_#e50914]" />
-                          <span>Netflix Picks</span>
-                        </Link>
-                        <Link to="/search?q=Prime" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-[#00a8e1] shadow-[0_0_8px_#00a8e1]" />
-                          <span>Prime Video</span>
-                        </Link>
-                        <Link to="/search?q=JioHotstar" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
-                          <span>JioHotstar</span>
-                        </Link>
-                        <Link to="/explore?filter=theaters" className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/6 text-xs text-slate-300 hover:text-white transition-colors">
-                          <span className="w-2 h-2 rounded-full bg-[#ff5500] shadow-[0_0_8px_#ff5500]" />
-                          <span>In Theaters Now</span>
-                        </Link>
-                      </div>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-mono uppercase tracking-widest text-[#ff6b00] font-bold pb-1.5 border-b border-white/8">
-                        Popular Genres
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 pt-2">
-                        {['Action', 'Sci-Fi', 'Crime Noir', 'Psychological', 'Dark Gritty', 'Anime', 'Horror'].map(g => (
-                          <Link
-                            key={g}
-                            to={`/search?q=${encodeURIComponent(g)}`}
-                            className="px-2.5 py-1 rounded-full bg-white/5 hover:bg-[#ff6b00]/20 hover:border-[#ff6b00]/40 border border-white/8 text-[11px] text-slate-300 hover:text-white transition-all font-mono"
-                          >
-                            {g}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Notifications Bell Trigger */}
             <div className="relative" ref={notificationsRef}>
@@ -346,11 +257,6 @@ export default function Navbar() {
                 title="Notifications"
               >
                 <Bell className="w-4 h-4" />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white text-[9px] font-bold flex items-center justify-center shadow-[0_0_10px_rgba(229,9,20,0.7)] animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
               </button>
 
               {/* Notifications Popover */}
@@ -363,59 +269,14 @@ export default function Navbar() {
                       <p className="text-xs font-display font-bold text-white">Notifications</p>
                       <p className="text-[10px] font-mono text-slate-400">Activity & Releases</p>
                     </div>
-                    {unreadCount > 0 && (
-                      <button
-                        onClick={markAllNotificationsRead}
-                        className="text-[10px] font-mono text-[#ff6b00] hover:text-[#ffa033] cursor-pointer"
-                      >
-                        Mark all read
-                      </button>
-                    )}
                   </div>
 
-                  {/* Tabs: All / Updates / Activity */}
-                  <div className="flex border-b border-white/8 px-3 pt-2 gap-2 text-xs font-mono">
-                    {['all', 'update', 'activity'].map(tab => (
-                      <button
-                        key={tab}
-                        onClick={() => setNotificationTab(tab)}
-                        className={`pb-2 capitalize transition-colors cursor-pointer ${
-                          notificationTab === tab
-                            ? 'text-[#ff6b00] border-b-2 border-[#ff6b00] font-bold'
-                            : 'text-slate-400 hover:text-white'
-                        }`}
-                      >
-                        {tab === 'update' ? 'Updates' : tab === 'activity' ? 'Activity' : 'All'}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Notification List */}
-                  <div className="max-h-72 overflow-y-auto divide-y divide-white/6">
-                    {filteredNotifications.length > 0 ? (
-                      filteredNotifications.map(n => (
-                        <div
-                          key={n.id}
-                          onClick={() => handleNotificationClick(n)}
-                          className={`p-3 hover:bg-white/6 transition-colors flex gap-2.5 items-start cursor-pointer group ${
-                            n.unread ? 'bg-white/4' : ''
-                          }`}
-                        >
-                          <span className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${n.unread ? 'bg-[#ff6b00] shadow-[0_0_8px_#ff6b00]' : 'bg-transparent'}`} />
-                          <div className="space-y-0.5 flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="text-[11px] font-display font-bold text-white truncate">{n.title}</span>
-                              <span className="text-[9px] font-mono text-slate-400 shrink-0">{n.time}</span>
-                            </div>
-                            <p className="text-[11px] text-slate-300 leading-snug">{n.body}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="py-8 text-center text-xs text-slate-400 font-mono">
-                        No notifications in this tab
-                      </div>
-                    )}
+                  {/* Empty State Notification List */}
+                  <div className="py-12 text-center space-y-2">
+                    <Bell className="w-8 h-8 text-slate-500 mx-auto opacity-50" />
+                    <p className="text-xs text-slate-400 font-mono">
+                      No new notifications
+                    </p>
                   </div>
                 </div>
               )}
@@ -632,6 +493,7 @@ export default function Navbar() {
                 }}
                 className="w-full bg-transparent text-white placeholder-slate-400 font-sans text-sm sm:text-base outline-none pr-8"
               />
+              <button type="submit" className="sr-only">Submit</button>
               {searchQuery && (
                 <button
                   type="button"
@@ -653,7 +515,7 @@ export default function Navbar() {
             {/* Modal Body */}
             <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto space-y-5 scrollbar-none">
               {/* Quick Trending Tags */}
-              {!searchQuery && (
+              {!searchQuery.trim() && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase text-slate-400">
                     <TrendingUp className="w-3.5 h-3.5 text-[#ffb800]" />
@@ -679,6 +541,12 @@ export default function Navbar() {
               {isLiveLoading && (
                 <div className="p-6 text-center text-xs font-mono text-slate-400 animate-pulse">
                   SEARCHING VAULT ARCHIVES...
+                </div>
+              )}
+
+              {!isLiveLoading && searchQuery.trim() && liveResults.length === 0 && (
+                <div className="p-6 text-center text-xs font-mono text-slate-500">
+                  No cinephile records found for "{searchQuery}"
                 </div>
               )}
 

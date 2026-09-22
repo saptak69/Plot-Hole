@@ -612,12 +612,23 @@ async function enrichWithTMDBDetails(items) {
   await Promise.all(
     uniqueIds.map(async (id) => {
       try {
-        const details = await fetchFromTMDB(`/movie/${id}`);
+        let details = await fetchFromTMDB(`/movie/${id}`);
         if (details) {
-          movieDetailsMap[id] = details;
+          movieDetailsMap[id] = { ...details, media_type: 'movie' };
         }
       } catch (err) {
-        console.error(`Failed to fetch TMDB details for enrichment (ID: ${id})`);
+        if (err.status === 404) {
+          try {
+            let tvDetails = await fetchFromTMDB(`/tv/${id}`);
+            if (tvDetails) {
+              movieDetailsMap[id] = { ...tvDetails, media_type: 'tv' };
+            }
+          } catch (tvErr) {
+            console.error(`Failed to fetch TMDB TV details for enrichment (ID: ${id})`);
+          }
+        } else {
+          console.error(`Failed to fetch TMDB Movie details for enrichment (ID: ${id})`);
+        }
       }
     })
   );
@@ -629,10 +640,10 @@ async function enrichWithTMDBDetails(items) {
     if (details) {
       return {
         ...item,
-        title: details.title,
+        title: details.title || details.name,
         name: details.name || details.title,
         poster_path: details.poster_path,
-        media_type: 'movie',
+        media_type: details.media_type || item.media_type || 'movie',
       };
     }
     return item;
@@ -816,7 +827,7 @@ app.get('/api/home/bundle', async (req, res) => {
       fetchFromTMDB('/movie/upcoming').catch(() => ({ results: [] })),
       fetchFromTMDB('/tv/popular').catch(() => ({ results: [] })),
       query(
-        `SELECT r.*, u.username, u.avatar_url 
+        `SELECT r.*, u.username, u.avatar_url, d.tmdb_movie_id, d.media_type 
          FROM reviews r 
          JOIN users u ON r.user_id = u.id 
          JOIN diary d ON r.diary_id = d.id
@@ -835,13 +846,15 @@ app.get('/api/home/bundle', async (req, res) => {
       ).catch(() => [])
     ]);
 
+    const enrichedRecentReviews = await enrichWithTMDBDetails(reviewsData);
+
     res.setHeader('Cache-Control', 'public, max-age=180, stale-while-revalidate=3600');
     res.json({
       popularMovies: popularData.results || [],
       topRatedMovies: topRatedData.results || [],
       upcomingMovies: upcomingData.results || [],
       popularTv: popularTvData.results || [],
-      recentReviews: reviewsData,
+      recentReviews: enrichedRecentReviews,
       tickerItems: tickerData
     });
   } catch (error) {
@@ -1648,7 +1661,8 @@ app.get('/api/lists', async (req, res) => {
     const lists = await query(
       `SELECT l.*, u.username, u.avatar_url, u.display_name,
          (SELECT COUNT(*) FROM list_items li WHERE li.list_id = l.id) as item_count,
-         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count
+         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count,
+         (SELECT GROUP_CONCAT(poster_path) FROM (SELECT poster_path FROM list_items li WHERE li.list_id = l.id ORDER BY added_at DESC LIMIT 4)) as preview_posters
        FROM lists l
        JOIN users u ON l.user_id = u.id
        WHERE l.is_private = 0 OR l.is_private IS NULL
@@ -1695,7 +1709,8 @@ app.get(['/api/lists/user/:username', '/api/lists/user/:identifier'], async (req
     const lists = await query(
       `SELECT l.*, u.username, u.avatar_url, u.display_name,
          (SELECT COUNT(*) FROM list_items li WHERE li.list_id = l.id) as item_count,
-         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count
+         (SELECT COUNT(*) FROM list_likes ll WHERE ll.list_id = l.id) as likes_count,
+         (SELECT GROUP_CONCAT(poster_path) FROM (SELECT poster_path FROM list_items li WHERE li.list_id = l.id ORDER BY added_at DESC LIMIT 4)) as preview_posters
        FROM lists l
        JOIN users u ON l.user_id = u.id
        WHERE l.user_id = $1
@@ -2452,7 +2467,7 @@ app.get('/api/spaces/posts', async (req, res) => {
         username: p.username,
         displayName: p.display_name || p.username,
         avatarUrl: p.avatar_url,
-        badge: p.username === 'saptak_cinephile' ? 'Verified Critic' : p.username === 'nolan_purist' ? 'Top Reviewer' : 'Cinephile'
+        badge: 'Cinephile'
       },
       category: p.category,
       title: p.title,

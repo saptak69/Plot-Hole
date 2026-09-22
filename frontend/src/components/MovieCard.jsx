@@ -113,13 +113,16 @@ export default function MovieCard({ movie, featured = false }) {
 
       {/* Card Info Area */}
       <div className="p-3 text-left bg-gradient-to-b from-[#111116] to-[#0a0a0d] relative z-20">
-        <h3 className="font-display font-bold text-[13px] text-slate-100 group-hover:text-[#ff3b47] transition-colors leading-snug line-clamp-2 h-[2.5rem]">
+        <h3 className="font-display font-bold text-[13px] text-slate-100 group-hover:text-[#ff3b47] transition-colors leading-snug min-h-[2.5rem]">
           {title}
         </h3>
         <div className="flex items-center justify-between mt-1 text-[10px] font-mono text-slate-400">
           <span>{year || 'Cinema'}</span>
           {movie.popularity && (
-            <span className="text-slate-500 font-normal">
+            <span 
+              className="text-slate-500 font-normal cursor-help" 
+              title="TMDB Popularity Score"
+            >
               {Math.round(movie.popularity)} pts
             </span>
           )}
