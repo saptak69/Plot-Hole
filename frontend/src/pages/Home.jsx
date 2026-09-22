@@ -453,7 +453,7 @@ export default function Home({ onOpenPerson }) {
 
         </div>
 
-        {/* Right Sticky Sidebar (Leaderboard, District Perk, Merch, Spaces) */}
+        {/* Right Sticky Sidebar (Leaderboard, Spaces) */}
         <aside className="space-y-6 lg:sticky lg:top-20">
 
 

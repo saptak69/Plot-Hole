@@ -20,72 +20,16 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notificationTab, setNotificationTab] = useState('all');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
-  // Real Database-Backed Notifications
-  const { data: notifData } = useQuery({
-    queryKey: ['notifications', user?.id],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/notifications`, {
-        headers: getAuthHeaders()
-      });
-      if (!res.ok) return { notifications: [], unreadCount: 0 };
-      return res.json();
-    },
-    refetchInterval: 30000
-  });
 
-  const notifications = notifData?.notifications || [];
-  const unreadCount = notifData?.unreadCount ?? 0;
-
-  const markAllReadMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`${API_URL}/notifications/read-all`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    }
-  });
-
-  const markSingleReadMutation = useMutation({
-    mutationFn: async (id) => {
-      const res = await fetch(`${API_URL}/notifications/${id}/read`, {
-        method: 'POST',
-        headers: getAuthHeaders()
-      });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-    }
-  });
-
-  const handleNotificationClick = (n) => {
-    if (n.unread) {
-      markSingleReadMutation.mutate(n.id);
-    }
-    setIsNotificationsOpen(false);
-    if (n.linkUrl && n.linkUrl !== '#') {
-      if (n.linkUrl.startsWith('http')) {
-        window.open(n.linkUrl, '_blank');
-      } else {
-        navigate(n.linkUrl);
-      }
-    }
-  };
 
   const [liveResults, setLiveResults] = useState([]);
   const [isLiveLoading, setIsLiveLoading] = useState(false);
   const searchInputRef = useRef(null);
   const modalInputRef = useRef(null);
-  const categoriesRef = useRef(null);
-  const notificationsRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const modalInputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -112,12 +56,6 @@ export default function Navbar() {
   // Close menus on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (categoriesRef.current && !categoriesRef.current.contains(e.target)) {
-        setIsCategoriesOpen(false);
-      }
-      if (notificationsRef.current && !notificationsRef.current.contains(e.target)) {
-        setIsNotificationsOpen(false);
-      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -133,8 +71,6 @@ export default function Navbar() {
       if (e.key === 'Escape') {
         setIsSearchModalOpen(false);
         setIsOpen(false);
-        setIsCategoriesOpen(false);
-        setIsNotificationsOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -190,12 +126,6 @@ export default function Navbar() {
   const handleLinkClick = () => {
     setIsOpen(false);
     setIsSearchModalOpen(false);
-    setIsCategoriesOpen(false);
-    setIsNotificationsOpen(false);
-  };
-
-  const markAllNotificationsRead = () => {
-    markAllReadMutation.mutate();
   };
 
   const currentActiveTab = () => {
@@ -206,11 +136,6 @@ export default function Navbar() {
     if (path.startsWith('/collections') || path.startsWith('/lists')) return '/collections';
     return '';
   };
-
-  const filteredNotifications = notifications.filter(n => {
-    if (notificationTab === 'all') return true;
-    return n.type === notificationTab;
-  });
 
   return (
     <>
@@ -244,43 +169,7 @@ export default function Navbar() {
             />
           </div>
 
-          {/* Right: Browse Categories, Notifications, Search & Profile */}
-          <div className="flex items-center justify-end gap-2 sm:gap-2.5">
 
-
-
-            {/* Notifications Bell Trigger */}
-            <div className="relative" ref={notificationsRef}>
-              <button
-                onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                className="relative p-2 rounded-xl bg-white/6 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white transition-all cursor-pointer"
-                title="Notifications"
-              >
-                <Bell className="w-4 h-4" />
-              </button>
-
-              {/* Notifications Popover */}
-              {isNotificationsOpen && (
-                <div
-                  className="absolute right-0 mt-3 w-80 sm:w-92 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.95),0_0_30px_rgba(229,9,20,0.2)] overflow-hidden z-50 text-left animate-fade-up"
-                >
-                  <div className="p-3.5 border-b border-white/8 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs font-display font-bold text-white">Notifications</p>
-                      <p className="text-[10px] font-mono text-slate-400">Activity & Releases</p>
-                    </div>
-                  </div>
-
-                  {/* Empty State Notification List */}
-                  <div className="py-12 text-center space-y-2">
-                    <Bell className="w-8 h-8 text-slate-500 mx-auto opacity-50" />
-                    <p className="text-xs text-slate-400 font-mono">
-                      No new notifications
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
