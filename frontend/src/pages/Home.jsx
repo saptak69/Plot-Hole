@@ -295,9 +295,112 @@ export default function Home({ onOpenPerson }) {
               </div>
             </section>
           )}
+        </div>
 
-          {/* Streaming Platforms Carousels */}
-          {/* Netflix */}
+        {/* Right Sticky Sidebar (Leaderboard, Spaces) */}
+        <aside className="space-y-6 lg:sticky lg:top-20">
+          {/* Most Interested Leaderboard (Moctale's Exact Feature) */}
+          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-white/8 pb-3">
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-[#e50914]" />
+                <h3 className="font-display font-bold text-sm text-white">
+                  Most Interested
+                </h3>
+              </div>
+
+              {/* Timeframe Select */}
+              <div className="flex items-center gap-1 text-[10px] font-mono">
+                {['week', 'month', 'all'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setLeaderboardTimeframe(t)}
+                    className={`px-2 py-0.5 rounded-md capitalize transition-colors cursor-pointer ${
+                      leaderboardTimeframe === t
+                        ? 'bg-[#ff6b00] text-white font-bold'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    {t === 'all' ? 'All' : t === 'month' ? 'Month' : 'Week'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Ranked List 1 to 5 */}
+            <div className="space-y-3">
+              {currentLeaderboard.map((item) => (
+                <Link
+                  key={item.id}
+                  to={`/media/${item.type}/${item.id}`}
+                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/5 transition-all group"
+                >
+                  <span className={`w-6 text-center font-display font-black text-sm shrink-0 ${
+                    item.rank === 1 ? 'text-[#e50914]' : item.rank === 2 ? 'text-[#ff6b00]' : item.rank === 3 ? 'text-[#ffa033]' : 'text-slate-400'
+                  }`}>
+                    #{item.rank}
+                  </span>
+
+                  <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-black/40">
+                    <img
+                      src={getPosterUrl(item.poster, 'w185')}
+                      alt={item.title}
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=185&auto=format&fit=crop';
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <p className="font-display font-bold text-xs text-white truncate group-hover:text-[#ffa033] transition-colors">
+                      {item.title}
+                    </p>
+                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                      <span className="text-amber-400">{item.venue}</span>
+                      <span>•</span>
+                      <span>{item.date}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-[9px] font-mono text-[#ff6b00]">
+                      <Flame className="w-3 h-3" />
+                      <span>{item.hype} interested</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <Link
+              to="/schedule"
+              className="w-full block text-center text-xs font-display font-bold text-slate-400 hover:text-[#ffa033] pt-2 border-t border-white/6"
+            >
+              View Full Release Radar →
+            </Link>
+          </div>
+
+          {/* Quick Jump to Spaces */}
+          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-[#ff6b00]" />
+              <h4 className="font-display font-bold text-sm text-white">Cinephile Spaces</h4>
+            </div>
+            <p className="text-xs text-slate-400 font-sans leading-relaxed">
+              Join debates, drop honest film verdicts, and vote on community film meters with verified cinephiles.
+            </p>
+            <Link
+              to="/spaces"
+              className="btn-fire w-full py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-center block"
+            >
+              Enter Spaces Feed →
+            </Link>
+          </div>
+        </aside>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 mt-12 space-y-12 relative z-10 pb-12">
+        {/* Streaming Platforms Carousels */}
+        {/* Netflix */}
           <section className="space-y-4">
             <div className="flex items-center justify-between border-b border-white/8 pb-3">
               <div className="flex items-center gap-2.5">
@@ -451,114 +554,6 @@ export default function Home({ onOpenPerson }) {
               </div>
             </section>
           )}
-
-        </div>
-
-        {/* Right Sticky Sidebar (Leaderboard, Spaces) */}
-        <aside className="space-y-6 lg:sticky lg:top-20">
-
-
-
-          {/* Most Interested Leaderboard (Moctale's Exact Feature) */}
-          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-[#e50914]" />
-                <h3 className="font-display font-bold text-sm text-white">
-                  Most Interested
-                </h3>
-              </div>
-
-              {/* Timeframe Select */}
-              <div className="flex items-center gap-1 text-[10px] font-mono">
-                {['week', 'month', 'all'].map((t) => (
-                  <button
-                    key={t}
-                    onClick={() => setLeaderboardTimeframe(t)}
-                    className={`px-2 py-0.5 rounded-md capitalize transition-colors cursor-pointer ${
-                      leaderboardTimeframe === t
-                        ? 'bg-[#ff6b00] text-white font-bold'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {t === 'all' ? 'All' : t === 'month' ? 'Month' : 'Week'}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Ranked List 1 to 5 */}
-            <div className="space-y-3">
-              {currentLeaderboard.map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/media/${item.type}/${item.id}`}
-                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/5 transition-all group"
-                >
-                  <span className={`w-6 text-center font-display font-black text-sm shrink-0 ${
-                    item.rank === 1 ? 'text-[#e50914]' : item.rank === 2 ? 'text-[#ff6b00]' : item.rank === 3 ? 'text-[#ffa033]' : 'text-slate-400'
-                  }`}>
-                    #{item.rank}
-                  </span>
-
-                  <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-black/40">
-                    <img
-                      src={getPosterUrl(item.poster, 'w185')}
-                      alt={item.title}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=185&auto=format&fit=crop';
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <p className="font-display font-bold text-xs text-white truncate group-hover:text-[#ffa033] transition-colors">
-                      {item.title}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                      <span className="text-amber-400">{item.venue}</span>
-                      <span>•</span>
-                      <span>{item.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[9px] font-mono text-[#ff6b00]">
-                      <Flame className="w-3 h-3" />
-                      <span>{item.hype} interested</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            <Link
-              to="/schedule"
-              className="w-full block text-center text-xs font-display font-bold text-slate-400 hover:text-[#ffa033] pt-2 border-t border-white/6"
-            >
-              View Full Release Radar →
-            </Link>
-          </div>
-
-
-
-          {/* Quick Jump to Spaces */}
-          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-[#ff6b00]" />
-              <h4 className="font-display font-bold text-sm text-white">Cinephile Spaces</h4>
-            </div>
-            <p className="text-xs text-slate-400 font-sans leading-relaxed">
-              Join debates, drop honest film verdicts, and vote on community film meters with verified cinephiles.
-            </p>
-            <Link
-              to="/spaces"
-              className="btn-fire w-full py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-center block"
-            >
-              Enter Spaces Feed →
-            </Link>
-          </div>
-
-        </aside>
 
       </div>
     </div>
