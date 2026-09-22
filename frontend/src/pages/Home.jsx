@@ -94,9 +94,6 @@ export default function Home({ onOpenPerson }) {
     setHeroIndex((prev) => (prev + 1) % featuredList.length);
   };
 
-  // Most Interested Leaderboard with verified real TMDB assets
-  const mostInterestedData = {
-    week: [
   // Dynamically generate leaderboard data based on actual TMDB data and popularity
   const formatLeaderboard = (movies) => {
     return (movies || []).slice(0, 5).map((m, idx) => ({
@@ -233,6 +230,10 @@ export default function Home({ onOpenPerson }) {
             )}
           </div>
 
+          {/* Editor's Pick */}
+          {editorPick && (
+            <section className="space-y-4">
+              <div className="flex items-center justify-between border-b border-white/8 pb-3">
                 <div className="flex items-center gap-2.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
                   <h2 className="font-display font-black text-xl sm:text-2xl text-white tracking-tight">

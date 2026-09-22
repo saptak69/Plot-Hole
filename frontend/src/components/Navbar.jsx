@@ -20,14 +20,8 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-
-
-
   const [liveResults, setLiveResults] = useState([]);
   const [isLiveLoading, setIsLiveLoading] = useState(false);
-  const searchInputRef = useRef(null);
-  const modalInputRef = useRef(null);
   const searchInputRef = useRef(null);
   const modalInputRef = useRef(null);
   const navigate = useNavigate();
@@ -168,9 +162,8 @@ export default function Navbar() {
               onTabChange={(tabId) => navigate(tabId)}
             />
           </div>
-
-
-
+          {/* Right: Search & Profile */}
+          <div className="flex items-center justify-end gap-2 sm:gap-2.5">
             {/* Universal Search Bar (Desktop & Tablet) */}
             <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
               <input
