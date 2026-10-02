@@ -1,16 +1,43 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, Heart, FolderPlus, Bookmark, Eye, MessageSquare } from 'lucide-react';
+import { Calendar, AlertCircle, Camera, Edit3, X, Download, Award, Star, Film, Clock, FolderPlus, Bookmark, MessageSquare } from 'lucide-react';
 import { API_URL, getAuthHeaders, getPosterUrl } from '../config';
 import { useAuth } from '../context/AuthContext';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
 import MovieCard from '../components/MovieCard';
-import GlassSurface from '../components/GlassSurface';
-import GlassTabBar from '../components/GlassTabBar';
-import GlassModal from '../components/GlassModal';
-import GlassCard from '../components/GlassCard';
+
+// Simple Tab Bar component (to replace GlassTabBar)
+function SimpleTabBar({ tabs, activeTab, onTabChange, className = '' }) {
+  return (
+    <div className={`flex items-center gap-1 p-1 bg-bg-surface border border-border rounded-xl ${className}`}>
+      {tabs.map((tab) => {
+        const Icon = tab.icon;
+        const isActive = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${
+              isActive 
+                ? 'bg-bg-elevated text-text-primary shadow-sm' 
+                : 'text-text-secondary hover:text-text-primary hover:bg-bg-hover'
+            }`}
+          >
+            {Icon && <Icon className="w-3.5 h-3.5" />}
+            <span>{tab.label}</span>
+            {tab.count !== undefined && (
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${isActive ? 'bg-accent/10 text-accent' : 'bg-bg-elevated text-text-muted'}`}>
+                {tab.count}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function PolaroidCard({ movieId, angle, initialMovie }) {
   const { data: movie } = useQuery({
@@ -24,15 +51,15 @@ function PolaroidCard({ movieId, angle, initialMovie }) {
     staleTime: 10 * 60 * 1000
   });
 
-  if (!movie) return <div className="aspect-[3/4] bg-white/5 rounded-xl border border-white/8 skeleton-shimmer" />;
+  if (!movie) return <div className="aspect-[3/4] bg-bg-surface rounded-xl border border-border skeleton-shimmer" />;
 
   return (
     <div
-      className="polaroid-container relative transform transition-transform hover:scale-105 duration-300 select-none cursor-pointer"
+      className="relative transform transition-transform hover:scale-105 duration-300 select-none cursor-pointer p-2 bg-bg-elevated border border-border rounded-xl shadow-sm"
       style={{ transform: `rotate(${angle * 0.5}deg)` }}
     >
       <Link to={`/media/${movie.media_type || 'movie'}/${movie.id}`}>
-        <div className="aspect-square w-full overflow-hidden rounded-xl border border-white/10 mb-2 bg-black shadow-inner">
+        <div className="aspect-[2/3] w-full overflow-hidden rounded-lg border border-border mb-2 bg-bg-surface">
           <img
             src={getPosterUrl(movie.poster_path, 'w300')}
             alt={movie.title || movie.name}
@@ -40,45 +67,11 @@ function PolaroidCard({ movieId, angle, initialMovie }) {
             loading="lazy"
           />
         </div>
-        <p className="font-display text-[10px] sm:text-[11px] font-bold text-slate-200 truncate text-center">
+        <p className="font-display text-[10px] sm:text-[11px] font-bold text-text-primary truncate text-center">
           {movie.title || movie.name}
         </p>
       </Link>
     </div>
-  );
-}
-
-function WatchlistCard({ movieId, initialMovie }) {
-  const { data: movie } = useQuery({
-    queryKey: ['movieDetails', movieId],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/movies/${movieId}`);
-      if (!res.ok) throw new Error('Not found');
-      return res.json();
-    },
-    initialData: initialMovie,
-    staleTime: 10 * 60 * 1000
-  });
-
-  if (!movie) return <div className="aspect-[2/3] bg-white/5 rounded-2xl border border-white/8 skeleton-shimmer" />;
-
-  return (
-    <Link 
-      to={`/media/${movie.media_type || 'movie'}/${movie.id}`} 
-      className="group relative block rounded-2xl overflow-hidden bg-[#121216] border border-white/8 hover:border-[#e50914]/50 transition-all hover:-translate-y-1 shadow-lg"
-    >
-      <div className="aspect-[2/3] w-full">
-        <img
-          src={getPosterUrl(movie.poster_path, 'w300')}
-          alt={movie.title || movie.name}
-          className="w-full h-full object-cover"
-          loading="lazy"
-        />
-      </div>
-      <div className="p-2.5 bg-gradient-to-t from-black via-black/80 to-transparent">
-        <p className="text-[11px] font-bold text-slate-200 truncate">{movie.title || movie.name}</p>
-      </div>
-    </Link>
   );
 }
 
@@ -97,9 +90,9 @@ function DiaryMobileCard({ entry }) {
   const mediaType = movie?.media_type || entry.media_type || 'movie';
 
   return (
-    <div className="glass-card p-4 rounded-2xl shadow-md space-y-3">
+    <div className="bg-bg-elevated p-4 rounded-2xl shadow-sm space-y-3 border border-border">
       <div className="flex items-center gap-3">
-        <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="shrink-0 w-14 h-20 rounded-xl overflow-hidden border border-white/10 bg-black shadow">
+        <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="shrink-0 w-14 h-20 rounded-xl overflow-hidden border border-border bg-bg-surface shadow-sm">
           <img
             src={getPosterUrl(movie?.poster_path, 'w185')}
             alt={title}
@@ -108,13 +101,13 @@ function DiaryMobileCard({ entry }) {
           />
         </Link>
         <div className="flex-1 min-w-0 space-y-1.5">
-          <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="font-display font-bold text-sm text-slate-100 hover:text-[#ff2e3b] block truncate">
+          <Link to={`/media/${mediaType}/${entry.tmdb_movie_id}`} className="font-display font-bold text-sm text-text-primary hover:text-accent block truncate transition-colors">
             {title}
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
             <RatingBadge rating={entry.rating} size="xs" />
-            <span className="font-mono text-[10px] text-slate-400 flex items-center gap-1">
-              <Calendar className="w-3 h-3 text-[#ffb800]" />
+            <span className="font-mono text-[10px] text-text-muted flex items-center gap-1">
+              <Calendar className="w-3 h-3 text-gold" />
               {entry.watched_date}
             </span>
           </div>
@@ -122,11 +115,32 @@ function DiaryMobileCard({ entry }) {
       </div>
 
       {entry.review_text && (
-        <p className="text-xs text-slate-300 italic bg-black/40 p-3 rounded-xl border border-white/5 leading-relaxed">
+        <p className="text-xs text-text-secondary italic bg-bg-surface p-3 rounded-xl border border-border leading-relaxed font-sans">
           "{entry.review_text}"
         </p>
       )}
     </div>
+  );
+}
+
+function MovieNameLink({ movieId, className = '' }) {
+  const { data: movie } = useQuery({
+    queryKey: ['movieDetailsSimple', movieId],
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/movies/${movieId}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 10
+  });
+
+  const title = movie?.title || movie?.name || `Film #${movieId}`;
+  const mediaType = movie?.media_type || 'movie';
+
+  return (
+    <Link to={`/media/${mediaType}/${movieId}`} className={className}>
+      {title}
+    </Link>
   );
 }
 
@@ -186,17 +200,15 @@ export default function Profile() {
 
     setEditError('');
 
-    // Automatic Client-Side Auto-Resize & Compression via Canvas
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_SIZE = 512; // High-definition 512x512 avatar
+        const MAX_SIZE = 512;
         let width = img.width;
         let height = img.height;
 
-        // Center square crop & scale down
         const minDim = Math.min(width, height);
         const startX = (width - minDim) / 2;
         const startY = (height - minDim) / 2;
@@ -207,19 +219,8 @@ export default function Profile() {
         const ctx = canvas.getContext('2d');
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(
-          img,
-          startX,
-          startY,
-          minDim,
-          minDim,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
+        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, canvas.width, canvas.height);
 
-        // Convert to high-quality compressed WebP/JPEG data URL (~50kb-100kb)
         const compressedDataUrl = canvas.toDataURL('image/webp', 0.88);
         setEditAvatar(compressedDataUrl);
       };
@@ -319,7 +320,6 @@ export default function Profile() {
     enabled: !!profileUser
   });
 
-  // Export Diary to CSV
   const handleExportData = () => {
     if (uniqueDiary.length === 0) return;
     const headers = 'ID,TMDB_ID,Watched_Date,Rating,Review\n';
@@ -338,8 +338,8 @@ export default function Profile() {
 
   if (profileLoading) {
     return (
-      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 flex flex-col items-center justify-center text-[#e50914] font-mono uppercase space-y-3">
-        <div className="w-10 h-10 border-3 border-[#e50914] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_15px_#e50914]" />
+      <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-20 flex flex-col items-center justify-center text-accent font-mono uppercase space-y-3">
+        <div className="w-10 h-10 border-3 border-accent border-t-transparent rounded-full animate-spin mx-auto shadow-sm" />
         <span className="text-xs tracking-widest font-bold">RETRIEVING PROFILE ARCHIVES...</span>
       </div>
     );
@@ -348,9 +348,9 @@ export default function Profile() {
   if (profileError || !profileUser) {
     return (
       <div className="flex-1 max-w-xl mx-auto px-4 py-24 text-center space-y-4 font-mono">
-        <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
-        <h2 className="text-xl font-bold text-white uppercase">Cinephile Record Not Found</h2>
-        <p className="text-xs text-slate-400 font-sans">
+        <AlertCircle className="w-12 h-12 text-error mx-auto" />
+        <h2 className="text-xl font-bold text-text-primary uppercase">Cinephile Record Not Found</h2>
+        <p className="text-xs text-text-secondary font-sans">
           The requested member dossier (@{username}) does not exist in the database.
         </p>
         <Link to="/" className="btn-primary inline-flex py-2 px-6 text-xs font-bold font-mono">
@@ -370,7 +370,6 @@ export default function Profile() {
 
   const rotations = [-3, 2, -1.5, 2.5, -2, 1.5];
 
-  // Process rating histogram
   const distMap = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let maxCount = 1;
   ratingsDist.forEach((r) => {
@@ -379,7 +378,6 @@ export default function Profile() {
     if (distMap[star] > maxCount) maxCount = distMap[star];
   });
 
-  // Calculate unlockable badges
   const badges = [
     { title: 'Film Marathoner', icon: Clock, unlocked: uniqueDiary.length >= 5, desc: 'Logged 5+ films' },
     { title: '5-Star Hunter', icon: Star, unlocked: diary.some((d) => d.rating >= 5), desc: 'Rated a film Pure Cinema' },
@@ -391,25 +389,24 @@ export default function Profile() {
     <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-4 sm:py-6 md:py-10 font-sans space-y-6 sm:space-y-8 overflow-x-hidden">
       
       {/* ================= PROFILE HEADER BENTO CARD ================= */}
-      <div className="glass-panel p-4 sm:p-6 md:p-8 rounded-3xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8 w-full">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[radial-gradient(circle,rgba(229,9,20,0.12)_0%,transparent_70%)] pointer-events-none" />
-
+      <div className="bg-bg-elevated border border-border p-4 sm:p-6 md:p-8 rounded-3xl relative overflow-hidden space-y-5 lg:space-y-0 lg:flex lg:items-start lg:gap-8 w-full shadow-sm">
+        
         {/* Mobile Top View: Centered Avatar + Name + Tag + Member Since */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 sm:gap-6 lg:block lg:shrink-0 relative z-10 w-full lg:w-auto">
-          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-2xl border border-white/20 mx-auto sm:mx-0">
+          <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full overflow-hidden shadow-sm border border-border mx-auto sm:mx-0">
             <Avatar username={profileUser.username} url={profileUser.avatar_url} className="w-full h-full" />
           </div>
 
           <div className="min-w-0 flex-1 lg:hidden space-y-1.5 flex flex-col items-center sm:items-start text-center sm:text-left w-full">
-            <h1 className="text-xl sm:text-2xl font-display font-black text-white truncate tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-display font-black text-text-primary truncate tracking-tight">
               {profileUser.display_name || profileUser.username}
             </h1>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className="inline-block text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+              <span className="inline-block text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">
                 @{profileUser.username}
               </span>
-              <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
-                <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+              <div className="flex items-center gap-1.5 text-[11px] text-text-secondary font-mono">
+                <Calendar className="w-3 h-3 text-text-muted shrink-0" />
                 <span>Joined {new Date(profileUser.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}</span>
               </div>
             </div>
@@ -419,41 +416,40 @@ export default function Profile() {
         {/* Center / Main Bio Column */}
         <div className="flex-1 space-y-4 min-w-0 relative z-10 w-full text-center sm:text-left">
           <div className="hidden lg:flex lg:items-center lg:gap-3 flex-wrap">
-            <h1 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-black text-text-primary tracking-tight">
               {profileUser.display_name || profileUser.username}
             </h1>
-            <span className="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30">
+            <span className="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-accent/10 text-accent border border-accent/20">
               @{profileUser.username}
             </span>
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono ml-auto">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <div className="flex items-center gap-1.5 text-xs text-text-secondary font-mono ml-auto">
+              <Calendar className="w-3.5 h-3.5 text-text-muted" />
               <span>Joined {new Date(profileUser.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}</span>
             </div>
           </div>
 
           {/* Bio text */}
-          <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+          <p className="text-xs sm:text-sm text-text-secondary font-sans leading-relaxed">
             {profileUser.bio || 'Curating films and recording reviews on PlotHole.'}
           </p>
 
-          {/* Responsive 4-Stat Metric Pill Grid (2x2 on Mobile, 4x1 on sm+) */}
+          {/* Responsive 4-Stat Metric Pill Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full">
-            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center relative group">
-              <div className="absolute inset-0 z-10" title="Estimated based on average film runtime (2.1h) + time spent writing reviews (0.4h)" />
-              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Watch Time</span>
-              <span className="font-mono font-bold text-sm sm:text-base text-[#ffb800]">{hoursWasted.toFixed(0)}h</span>
+            <div className="bg-bg-surface border border-border p-2.5 sm:p-3 rounded-2xl text-center relative group">
+              <span className="text-[10px] font-mono uppercase text-text-muted block font-semibold truncate">Watch Time</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-gold">{hoursWasted.toFixed(0)}h</span>
             </div>
-            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
-              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Films</span>
-              <span className="font-mono font-bold text-sm sm:text-base text-white">{uniqueDiary.length}</span>
+            <div className="bg-bg-surface border border-border p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-text-muted block font-semibold truncate">Films</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-text-primary">{uniqueDiary.length}</span>
             </div>
-            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
-              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Reviews</span>
-              <span className="font-mono font-bold text-sm sm:text-base text-[#ff4d5a]">{stats?.reviews || 0}</span>
+            <div className="bg-bg-surface border border-border p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-text-muted block font-semibold truncate">Reviews</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-accent">{stats?.reviews || 0}</span>
             </div>
-            <div className="bg-white/6 border border-white/8 p-2.5 sm:p-3 rounded-2xl text-center">
-              <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold truncate">Followers</span>
-              <span className="font-mono font-bold text-sm sm:text-base text-amber-400">{stats?.followers || 0}</span>
+            <div className="bg-bg-surface border border-border p-2.5 sm:p-3 rounded-2xl text-center">
+              <span className="text-[10px] font-mono uppercase text-text-muted block font-semibold truncate">Followers</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-warning">{stats?.followers || 0}</span>
             </div>
           </div>
 
@@ -463,7 +459,7 @@ export default function Profile() {
               <button
                 onClick={() => followMutation.mutate()}
                 disabled={followMutation.isPending}
-                className={isFollowing ? 'btn-secondary text-xs px-4 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider' : 'glass-btn-red text-xs px-5 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider rounded-2xl'}
+                className={isFollowing ? 'btn-secondary text-xs px-4 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider' : 'btn-primary text-xs px-5 py-2.5 w-full sm:w-auto font-display font-bold uppercase tracking-wider rounded-xl'}
               >
                 {isFollowing ? 'Unfollow' : 'Follow Cinephile'}
               </button>
@@ -471,12 +467,12 @@ export default function Profile() {
 
             {isOwnProfile && (
               <>
-                <button onClick={openEditModal} className="glass-btn-red text-xs px-4.5 py-2.5 rounded-2xl flex items-center justify-center gap-1.5 font-display font-bold uppercase tracking-wider shadow-md cursor-pointer w-full sm:w-auto">
+                <button onClick={openEditModal} className="btn-primary text-xs px-4.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 font-display font-bold uppercase tracking-wider shadow-sm cursor-pointer w-full sm:w-auto">
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit Profile</span>
                 </button>
 
-                <button onClick={handleExportData} className="px-4.5 py-2.5 rounded-2xl text-xs flex items-center justify-center gap-1.5 text-slate-200 hover:text-white bg-white/6 hover:bg-white/10 border border-white/10 cursor-pointer transition-colors font-display font-bold uppercase tracking-wider w-full sm:w-auto">
+                <button onClick={handleExportData} className="px-4.5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 text-text-secondary hover:text-text-primary bg-bg-surface hover:bg-bg-hover border border-border cursor-pointer transition-colors font-display font-bold uppercase tracking-wider w-full sm:w-auto">
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Archive</span>
                 </button>
@@ -486,8 +482,8 @@ export default function Profile() {
         </div>
 
         {/* Rating Distribution Histogram Bento Card */}
-        <div className="glass-card p-3.5 sm:p-4 rounded-3xl w-full lg:w-60 space-y-2 shrink-0 relative z-10 mx-auto lg:mx-0">
-          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-[#ff4d5a] uppercase block border-b border-white/8 pb-1.5 text-center sm:text-left">
+        <div className="bg-bg-surface border border-border p-3.5 sm:p-4 rounded-3xl w-full lg:w-60 space-y-2 shrink-0 relative z-10 mx-auto lg:mx-0">
+          <span className="text-[10px] sm:text-[11px] font-mono font-bold text-text-secondary uppercase block border-b border-border pb-1.5 text-center sm:text-left">
             Rating Distribution
           </span>
 
@@ -498,11 +494,11 @@ export default function Profile() {
               return (
                 <div key={star} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
                   <div
-                    className="w-full bg-gradient-to-t from-[#b80710] to-[#e50914] rounded-t-md transition-all hover:bg-[#ff3b47]"
+                    className="w-full bg-accent rounded-t-md transition-all hover:bg-accent/80"
                     style={{ height: `${heightPct}%` }}
                     title={`${count} films rated ${star} stars`}
                   />
-                  <span className="text-[9px] font-mono text-slate-400 font-bold">{star}★</span>
+                  <span className="text-[9px] font-mono text-text-muted font-bold">{star}★</span>
                 </div>
               );
             })}
@@ -512,7 +508,7 @@ export default function Profile() {
 
       {/* ================= CINEPHILE BADGES SHOWCASE ================= */}
       <div className="space-y-2.5">
-        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 text-center sm:text-left">
+        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-secondary text-center sm:text-left">
           Cinephile Badges & Milestones
         </h3>
 
@@ -522,18 +518,18 @@ export default function Profile() {
             return (
               <div
                 key={b.title}
-                className={`p-3 sm:p-4 rounded-2xl flex items-center gap-2.5 sm:gap-3 transition-all ${
+                className={`p-3 sm:p-4 rounded-2xl flex items-center gap-2.5 sm:gap-3 transition-all border ${
                   b.unlocked
-                    ? 'glass-card border-[#e50914]/40 text-slate-100 shadow-[0_2px_14px_rgba(229,9,20,0.15)]'
-                    : 'glass-card opacity-60 text-slate-400'
+                    ? 'bg-bg-elevated border-accent/40 text-text-primary shadow-sm'
+                    : 'bg-bg-surface border-border text-text-muted'
                 }`}
               >
-                <div className={`p-2 rounded-xl border shrink-0 ${b.unlocked ? 'bg-[#e50914]/20 text-[#ff4d5a] border-[#e50914]/40 shadow-inner' : 'bg-white/5 border-white/10 text-slate-500'}`}>
+                <div className={`p-2 rounded-xl border shrink-0 ${b.unlocked ? 'bg-accent/10 text-accent border-accent/20' : 'bg-bg-elevated border-border text-text-muted'}`}>
                   <Icon className="w-4 h-4" />
                 </div>
                 <div className="min-w-0">
-                  <span className="font-display font-bold text-xs block truncate text-slate-200">{b.title}</span>
-                  <span className="font-mono text-[9px] sm:text-[10px] text-slate-400 block truncate">{b.desc}</span>
+                  <span className="font-display font-bold text-xs block truncate text-text-primary">{b.title}</span>
+                  <span className="font-mono text-[9px] sm:text-[10px] text-text-secondary block truncate">{b.desc}</span>
                 </div>
               </div>
             );
@@ -544,7 +540,7 @@ export default function Profile() {
       {/* ================= PINNED REEL DISCOVERIES ================= */}
       {topMovieIds.length > 0 && (
         <div className="space-y-2.5">
-          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 text-center sm:text-left">
+          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-text-secondary text-center sm:text-left">
             Pinned Reel Discoveries
           </h3>
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5 sm:gap-4 pt-0.5 justify-center justify-items-center">
@@ -555,9 +551,9 @@ export default function Profile() {
         </div>
       )}
 
-      {/* ================= AICANVAS REALISTIC LIQUID GLASS TAB BAR ================= */}
+      {/* ================= TAB BAR ================= */}
       <div className="w-full overflow-x-auto scrollbar-none flex justify-center sm:justify-start">
-        <GlassTabBar
+        <SimpleTabBar
           tabs={[
             { id: 'diary', label: 'Diary', icon: Film, count: uniqueDiary.length },
             { id: 'reviews', label: 'Reviews', icon: MessageSquare, count: reviews.length },
@@ -576,45 +572,43 @@ export default function Profile() {
         {activeTab === 'diary' && (
           <div>
             {diaryLoading ? (
-              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING DIARY TIMELINE...</div>
+              <div className="p-12 text-center text-xs font-mono text-text-muted animate-pulse">LOADING DIARY TIMELINE...</div>
             ) : uniqueDiary.length === 0 ? (
-              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="bg-bg-elevated border border-border p-8 rounded-2xl text-center text-text-secondary text-xs font-mono">
                 Diary timeline is currently empty.
               </div>
             ) : (
               <>
-                {/* Mobile Screen (< md): Rich Responsive Cards */}
                 <div className="block md:hidden space-y-3">
                   {uniqueDiary.map((entry) => (
                     <DiaryMobileCard key={entry.id} entry={entry} />
                   ))}
                 </div>
 
-                {/* Desktop Screen (>= md): Full Data Table */}
-                <div className="hidden md:block glass-panel rounded-3xl overflow-hidden shadow-2xl">
+                <div className="hidden md:block bg-bg-elevated border border-border rounded-2xl overflow-hidden shadow-sm">
                   <table className="w-full text-xs text-left border-collapse font-sans">
                     <thead>
-                      <tr className="bg-white/5 text-slate-300 font-mono uppercase text-[11px] border-b border-white/8">
+                      <tr className="bg-bg-surface text-text-secondary font-mono uppercase text-[11px] border-b border-border">
                         <th className="px-6 py-4">Watched Date</th>
                         <th className="px-6 py-4">Movie</th>
                         <th className="px-6 py-4">Rating</th>
                         <th className="px-6 py-4">Review Notes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/5">
+                    <tbody className="divide-y divide-border">
                       {uniqueDiary.map((entry) => (
-                        <tr key={entry.id} className="hover:bg-white/5 transition-colors">
-                          <td className="px-6 py-4 font-mono text-slate-400 flex items-center gap-2">
-                            <Calendar className="w-3.5 h-3.5 text-[#ffb800]" />
+                        <tr key={entry.id} className="hover:bg-bg-hover transition-colors">
+                          <td className="px-6 py-4 font-mono text-text-secondary flex items-center gap-2">
+                            <Calendar className="w-3.5 h-3.5 text-gold" />
                             <span>{entry.watched_date}</span>
                           </td>
-                          <td className="px-6 py-4 font-display font-bold text-slate-100">
-                            <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-[#e50914] transition-colors" />
+                          <td className="px-6 py-4 font-display font-bold text-text-primary">
+                            <MovieNameLink movieId={entry.tmdb_movie_id} className="hover:text-accent transition-colors" />
                           </td>
                           <td className="px-6 py-4">
                             <RatingBadge rating={entry.rating} size="xs" />
                           </td>
-                          <td className="px-6 py-4 text-slate-400 max-w-xs truncate">{entry.review_text || '—'}</td>
+                          <td className="px-6 py-4 text-text-secondary max-w-xs truncate">{entry.review_text || '—'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -629,28 +623,28 @@ export default function Profile() {
         {activeTab === 'reviews' && (
           <div>
             {reviewsLoading ? (
-              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING USER REVIEWS...</div>
+              <div className="p-12 text-center text-xs font-mono text-text-muted animate-pulse">LOADING USER REVIEWS...</div>
             ) : reviews.length === 0 ? (
-              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="bg-bg-elevated border border-border p-8 rounded-2xl text-center text-text-secondary text-xs font-mono">
                 No user reviews written yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {reviews.map((rev) => (
-                  <GlassCard key={rev.id} className="p-5 rounded-2xl space-y-3">
-                    <div className="flex items-center justify-between border-b border-white/8 pb-3 gap-2">
-                      <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors line-clamp-1 truncate" />
+                  <div key={rev.id} className="p-5 rounded-2xl space-y-3 bg-bg-elevated border border-border shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border pb-3 gap-2">
+                      <MovieNameLink movieId={rev.tmdb_movie_id} className="font-display font-bold text-sm text-text-primary hover:text-accent transition-colors line-clamp-1 truncate" />
                       <RatingBadge rating={rev.rating} size="xs" />
                     </div>
                     {rev.review_text && (
-                      <p className="text-xs text-slate-300 italic font-sans leading-relaxed bg-black/40 p-3 rounded-xl border border-white/6">
+                      <p className="text-xs text-text-secondary italic font-sans leading-relaxed bg-bg-surface p-3 rounded-xl border border-border">
                         "{rev.review_text}"
                       </p>
                     )}
-                    <span className="text-[10px] font-mono text-slate-400 block">
+                    <span className="text-[10px] font-mono text-text-muted block">
                       Logged {new Date(rev.created_at).toLocaleDateString()}
                     </span>
-                  </GlassCard>
+                  </div>
                 ))}
               </div>
             )}
@@ -661,30 +655,30 @@ export default function Profile() {
         {activeTab === 'lists' && (
           <div>
             {listsLoading ? (
-              <div className="p-12 text-center text-xs animate-pulse font-mono text-slate-400">LOADING CUSTOM LISTS...</div>
+              <div className="p-12 text-center text-xs animate-pulse font-mono text-text-muted">LOADING CUSTOM LISTS...</div>
             ) : userLists.length === 0 ? (
-              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="bg-bg-elevated border border-border p-8 rounded-2xl text-center text-text-secondary text-xs font-mono">
                 No custom lists created yet.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userLists.map((lst) => (
-                  <GlassCard key={lst.id} className="p-5 space-y-3 rounded-2xl flex flex-col justify-between">
+                  <div key={lst.id} className="p-5 space-y-3 rounded-2xl flex flex-col justify-between bg-bg-elevated border border-border shadow-sm hover:border-border-hover transition-colors">
                     <div className="space-y-1">
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 text-[10px] font-mono uppercase font-semibold">
+                      <span className="px-2.5 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20 text-[10px] font-mono uppercase font-semibold">
                         Collection
                       </span>
                       <Link to={`/lists/${lst.id}`}>
-                        <h4 className="font-display font-bold text-sm text-slate-100 hover:text-[#ff4d5a] transition-colors leading-tight pt-1">
+                        <h4 className="font-display font-bold text-sm text-text-primary hover:text-accent transition-colors leading-tight pt-1">
                           {lst.title}
                         </h4>
                       </Link>
-                      <p className="text-xs text-slate-400 font-sans line-clamp-2">{lst.description || 'No description provided.'}</p>
+                      <p className="text-xs text-text-secondary font-sans line-clamp-2">{lst.description || 'No description provided.'}</p>
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 pt-2 border-t border-white/8 block">
+                    <span className="text-[10px] font-mono text-text-muted pt-2 border-t border-border block">
                       {lst.item_count || 0} Films Stored
                     </span>
-                  </GlassCard>
+                  </div>
                 ))}
               </div>
             )}
@@ -695,9 +689,9 @@ export default function Profile() {
         {activeTab === 'watchlist' && isOwnProfile && (
           <div>
             {watchlistLoading ? (
-              <div className="p-12 text-center text-xs font-mono text-slate-400 animate-pulse">LOADING WATCHLIST...</div>
+              <div className="p-12 text-center text-xs font-mono text-text-muted animate-pulse">LOADING WATCHLIST...</div>
             ) : watchlist.length === 0 ? (
-              <div className="glass-panel p-8 rounded-3xl text-center text-slate-400 text-xs font-mono">
+              <div className="bg-bg-elevated border border-border p-8 rounded-2xl text-center text-text-secondary text-xs font-mono">
                 Watchlist is empty. Explore movies and click bookmark to add!
               </div>
             ) : (
@@ -713,73 +707,61 @@ export default function Profile() {
         )}
       </div>
 
-      {/* Edit Profile Modal with GlassModal */}
-      <GlassModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Edit Cinephile Passport"
-        subtitle="Update your public critic avatar and cinema bio."
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          {editError && <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-xl text-xs">{editError}</div>}
-
-          <div className="flex items-center gap-4">
-            <div className="relative w-14 h-14 rounded-full overflow-hidden border border-white/20 shrink-0">
-              <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
-              <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                <Camera className="w-5 h-5 text-white" />
-              </label>
+      {/* Edit Profile Modal (Inline custom structure instead of GlassModal) */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-bg-primary/80 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)} />
+          <div className="relative w-full max-w-md bg-bg-elevated border border-border rounded-2xl shadow-lg p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div>
+                <h3 className="font-display text-lg font-bold text-text-primary">Edit Cinephile Passport</h3>
+                <p className="text-xs text-text-secondary font-sans">Update your public critic avatar and cinema bio.</p>
+              </div>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-text-muted hover:text-text-primary transition-colors p-1">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <input id="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-            <button type="button" onClick={() => document.getElementById('avatar-file-input').click()} className="btn-secondary px-3.5 py-1.5 text-xs">
-              Change Avatar
-            </button>
-          </div>
+            
+            <form onSubmit={handleEditSubmit} className="space-y-4 pt-2">
+              {editError && <div className="p-3 bg-error/10 border border-error/20 text-error rounded-xl text-xs">{editError}</div>}
 
-          <div>
-            <label className="block font-mono font-bold uppercase tracking-wider text-[11px] text-slate-300 mb-1.5">
-              Personal Biography
-            </label>
-            <textarea
-              rows={3}
-              maxLength={250}
-              required
-              value={editBio}
-              onChange={(e) => setEditBio(e.target.value)}
-              className="w-full p-3.5 bg-black/40 border border-white/10 rounded-xl text-slate-100 font-sans text-xs focus:outline-none focus:border-[#e50914]/70 leading-relaxed transition-all"
-            />
-          </div>
+              <div className="flex items-center gap-4">
+                <div className="relative w-14 h-14 rounded-full overflow-hidden border border-border shrink-0 bg-bg-surface">
+                  <Avatar username={profileUser.username} url={editAvatar} className="w-full h-full" />
+                  <label htmlFor="avatar-file-input" className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                    <Camera className="w-5 h-5 text-white" />
+                  </label>
+                </div>
+                <input id="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                <button type="button" onClick={() => document.getElementById('avatar-file-input').click()} className="btn-secondary px-3.5 py-1.5 text-xs">
+                  Change Avatar
+                </button>
+              </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-secondary px-4 py-2 text-xs">Cancel</button>
-            <button type="submit" disabled={isSaving} className="btn-primary px-6 py-2 text-xs font-bold shadow-md">
-              {isSaving ? 'Saving...' : 'Save Profile'}
-            </button>
+              <div>
+                <label className="block font-mono font-bold uppercase tracking-wider text-[11px] text-text-secondary mb-1.5">
+                  Personal Biography
+                </label>
+                <textarea
+                  rows={3}
+                  maxLength={250}
+                  required
+                  value={editBio}
+                  onChange={(e) => setEditBio(e.target.value)}
+                  className="w-full p-3.5 bg-bg-surface border border-border rounded-xl text-text-primary font-sans text-xs focus:outline-none focus:border-accent leading-relaxed transition-colors"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-secondary px-4 py-2 text-xs">Cancel</button>
+                <button type="submit" disabled={isSaving} className="btn-primary px-6 py-2 text-xs font-bold shadow-sm">
+                  {isSaving ? 'Saving...' : 'Save Profile'}
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </GlassModal>
+        </div>
+      )}
     </div>
-  );
-}
-
-function MovieNameLink({ movieId, className = '' }) {
-  const { data: movie } = useQuery({
-    queryKey: ['movieDetailsSimple', movieId],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/movies/${movieId}`);
-      if (!res.ok) return null;
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 10
-  });
-
-  const title = movie?.title || movie?.name || `Film #${movieId}`;
-  const mediaType = movie?.media_type || 'movie';
-
-  return (
-    <Link to={`/media/${mediaType}/${movieId}`} className={className}>
-      {title}
-    </Link>
   );
 }

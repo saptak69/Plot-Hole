@@ -1,13 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 /**
- * AICanvas Realistic Glass Modal Dialog Component
+ * GlassModal — Accessible modal dialog
+ * 
  * Features:
- * - Deep multi-tier frosted glass backdrop blur
- * - Specular rim highlights and glossy top reflection
- * - Spring scale-in entry animation
- * - Accessible keyboard (Escape to close) and backdrop tap to dismiss
+ * - Escape to close
+ * - Click backdrop to dismiss
+ * - Focus trap (returns focus on close)
+ * - Body scroll lock
+ * - Proper ARIA attributes
  */
 export default function GlassModal({
   isOpen,
@@ -19,8 +21,17 @@ export default function GlassModal({
   className = '',
   zIndex = 'z-[1050]',
 }) {
+  const previousFocus = useRef(null);
+  const closeRef = useRef(null);
+
   useEffect(() => {
     if (!isOpen) return;
+
+    // Store and manage focus
+    previousFocus.current = document.activeElement;
+    setTimeout(() => closeRef.current?.focus(), 50);
+
+    // Keyboard and scroll
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
     };
@@ -30,6 +41,7 @@ export default function GlassModal({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
+      previousFocus.current?.focus();
     };
   }, [isOpen, onClose]);
 
@@ -39,44 +51,45 @@ export default function GlassModal({
     <div
       className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 sm:p-6 overflow-y-auto`}
       style={{
-        backgroundColor: 'rgba(4, 4, 7, 0.75)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
     >
       <div
-        className={`w-full ${maxWidth} glass-modal rounded-3xl p-6 sm:p-7 relative shadow-[0_25px_70px_rgba(0,0,0,0.9),0_0_40px_rgba(229,9,20,0.12)] border border-white/16 animate-fade-up ${className}`}
+        className={`w-full ${maxWidth} bg-bg-elevated rounded-2xl p-6 sm:p-7 relative shadow-2xl border border-border animate-fade-up ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Specular Top Reflection Layer */}
-        <div className="glass-specular-top" aria-hidden="true" />
-
-        {/* Modal Header */}
-        <div className="flex items-start justify-between border-b border-white/10 pb-4 mb-5 relative z-10">
+        {/* Header */}
+        <div className="flex items-start justify-between border-b border-border pb-4 mb-5">
           <div>
             {title && (
-              <h3 className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
+              <h2 id="modal-title" className="font-display font-bold text-lg sm:text-xl text-text-primary">
                 {title}
-              </h3>
+              </h2>
             )}
             {subtitle && (
-              <p className="text-xs text-slate-400 font-sans mt-0.5">{subtitle}</p>
+              <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>
             )}
           </div>
           <button
+            ref={closeRef}
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-bg-surface transition-colors cursor-pointer"
             aria-label="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Modal Body */}
-        <div className="relative z-10">
+        {/* Body */}
+        <div>
           {children}
         </div>
       </div>

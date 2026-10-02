@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { 
-  Flame, Trophy, Film, Tv, ArrowRight, Star, Clock, Ticket, Copy, Check, ExternalLink,
-  Sparkles, TrendingUp, Compass, Bookmark, ShoppingBag, MessageSquare, ChevronRight, Play
+  Flame, Trophy, Film, Tv, Sparkles, Compass, ChevronRight 
 } from 'lucide-react';
-import { API_URL, getPosterUrl, getBackdropUrl } from '../config';
+import { movies as moviesApi } from '../services/api';
+import { getPosterUrl, getBackdropUrl } from '../config';
 import { useToast } from '../context/ToastContext';
 import MovieCard from '../components/MovieCard';
 import RatingBadge from '../components/RatingBadge';
 import Avatar from '../components/Avatar';
 import TrailerHero from '../components/TrailerHero';
 import MovieStack from '../components/MovieStack';
-import GlassSurface from '../components/GlassSurface';
+import { MovieGridSkeleton, HeroSkeleton } from '../components/Skeleton';
 
 export default function Home({ onOpenPerson }) {
   const toast = useToast();
@@ -21,20 +21,12 @@ export default function Home({ onOpenPerson }) {
 
   const { data: homeBundle, isLoading: bundleLoading } = useQuery({
     queryKey: ['homeBundle'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/home/bundle`);
-      if (!res.ok) throw new Error('Failed to fetch home bundle');
-      return res.json();
-    }
+    queryFn: moviesApi.getHomeBundle
   });
 
-  const { data: exploreBundle } = useQuery({
+  const { data: exploreBundle, isLoading: exploreLoading } = useQuery({
     queryKey: ['exploreBundle'],
-    queryFn: async () => {
-      const res = await fetch(`${API_URL}/explore/bundle`);
-      if (!res.ok) return { anime: [], noir: [], nowPlaying: [] };
-      return res.json();
-    }
+    queryFn: moviesApi.getExploreBundle
   });
 
   const popularMovies = homeBundle?.popularMovies || [];
@@ -48,11 +40,9 @@ export default function Home({ onOpenPerson }) {
   const nowPlayingMovies = exploreBundle?.nowPlaying || [];
 
   const [heroIndex, setHeroIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
   const [isTrailerActive, setIsTrailerActive] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [leaderboardTimeframe, setLeaderboardTimeframe] = useState('week');
-
 
   // Sync category if URL search param changes
   useEffect(() => {
@@ -77,12 +67,12 @@ export default function Home({ onOpenPerson }) {
 
   // Slideshow cycle
   useEffect(() => {
-    if (featuredList.length <= 1 || isTrailerActive || isHovered) return;
+    if (featuredList.length <= 1 || isTrailerActive) return;
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % featuredList.length);
     }, 6500);
     return () => clearInterval(timer);
-  }, [featuredList.length, isTrailerActive, heroIndex, isHovered]);
+  }, [featuredList.length, isTrailerActive, heroIndex]);
 
   const handlePrevSlide = () => {
     if (featuredList.length <= 1) return;
@@ -117,16 +107,14 @@ export default function Home({ onOpenPerson }) {
   const currentLeaderboard = mostInterestedData[leaderboardTimeframe] || mostInterestedData.week;
 
   return (
-    <div className="flex-1 pb-24 font-sans text-slate-100 relative overflow-hidden">
+    <div className="flex-1 pb-24 relative overflow-hidden">
 
       {/* Hero Showcase / Talk of the Town Carousel */}
-      <div 
-        className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 pt-4 sm:pt-6 pb-6 relative z-10"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
-        {heroMovie ? (
-          <div className="space-y-3.5">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 pt-4 pb-6">
+        {bundleLoading ? (
+          <HeroSkeleton />
+        ) : heroMovie ? (
+          <div className="space-y-3">
             <TrailerHero
               movie={heroMovie}
               mediaType={heroMovie.name ? 'tv' : 'movie'}
@@ -135,83 +123,71 @@ export default function Home({ onOpenPerson }) {
               onTrailerStateChange={(active) => setIsTrailerActive(active)}
             />
 
-            {/* Symmetrical Dot Indicators with Red-Orange Glow */}
+            {/* Symmetrical Dot Indicators */}
             <div className="flex items-center justify-center gap-2 pt-2">
               {featuredList.map((movieItem, idx) => (
                 <button
                   key={`dot-${movieItem.id || idx}`}
                   onClick={() => setHeroIndex(idx)}
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  className={`relative h-2.5 rounded-full transition-all duration-500 cursor-pointer overflow-hidden ${
+                  className={`relative h-2 rounded-full transition-all duration-300 cursor-pointer overflow-hidden ${
                     heroIndex === idx
-                      ? 'w-10 bg-gradient-to-r from-[#e50914] via-[#ff6b00] to-[#ffa033] shadow-[0_0_12px_rgba(255,107,0,0.6)]'
-                      : 'w-3 bg-white/30 hover:bg-white/60'
+                      ? 'w-8 bg-accent'
+                      : 'w-2 bg-text-faint hover:bg-text-muted'
                   }`}
                   title={`Go to ${movieItem.title || movieItem.name || `slide ${idx + 1}`}`}
+                  aria-label={`Go to slide ${idx + 1}`}
                 />
               ))}
             </div>
           </div>
-        ) : (
-          <div className="aspect-[21/9] w-full rounded-3xl bg-white/5 border border-white/8 skeleton-shimmer" />
-        )}
+        ) : null}
       </div>
 
-      {/* Main 2-Column Responsive Layout (Explore Stream + Sticky Right Rail) */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_350px] gap-8 relative z-10 items-start">
+      {/* Main 2-Column Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8 items-start">
         
-        {/* Left / Main Column (Talk of the Town, OTT Feeds, Partner Perks) */}
+        {/* Left / Main Column */}
         <div className="space-y-12 min-w-0">
 
           {/* Talk of the Town Filter Bar */}
-          <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#e50914] to-[#ff6b00] shadow-[0_0_10px_#ff6b00]" />
-                <h2 className="font-display font-black text-xl sm:text-2xl text-white tracking-tight flex items-center gap-2">
-                  <span>Talk of the Town</span>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-[#ff6b00]/15 text-[#ffa033] border border-[#ff6b00]/30 font-bold">
-                    Live
-                  </span>
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border pb-4">
+              <div className="space-y-1">
+                <h2 className="font-display font-bold text-2xl text-text-primary flex items-center gap-2">
+                  Now Trending
                 </h2>
+                <p className="text-sm text-text-muted">The most discussed films and series right now.</p>
               </div>
 
-              {/* Sub-Category Rail */}
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 snap-x snap-mandatory overscroll-x-contain">
                 {[
                   { id: 'trending', label: 'Trending', icon: Flame },
                   { id: 'nowPlaying', label: 'In Theatres', icon: Film },
                   { id: 'topRated', label: 'Hall of Fame', icon: Trophy },
-                  { id: 'anime', label: 'Anime Vault', icon: Sparkles },
-                  { id: 'noir', label: 'Neo-Noir', icon: Compass },
+                  { id: 'anime', label: 'Anime', icon: Sparkles },
                   { id: 'tv', label: 'Series', icon: Tv }
                 ].map(cat => (
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-display font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                    className={`px-4 py-2 sm:px-3 sm:py-1.5 rounded-full sm:rounded-lg text-[13px] sm:text-xs font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 snap-start ${
                       selectedCategory === cat.id
-                        ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_12px_rgba(255,107,0,0.35)]'
-                        : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/8'
+                        ? 'bg-text-primary text-bg-primary'
+                        : 'bg-bg-surface text-text-secondary hover:text-text-primary hover:bg-bg-hover border border-border'
                     }`}
                   >
-                    <cat.icon className="w-3.5 h-3.5" />
+                    <cat.icon className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
                     <span>{cat.label}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Movie Grid */}
-            {bundleLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 sm:gap-4">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="aspect-[2/3] rounded-2xl bg-white/5 border border-white/8 skeleton-shimmer" />
-                ))}
-              </div>
+            {/* Movie Grid / Mobile Rail */}
+            {bundleLoading || (exploreLoading && ['anime', 'noir', 'nowPlaying'].includes(selectedCategory)) ? (
+              <MovieGridSkeleton count={8} />
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 sm:gap-4">
+              <div className="flex sm:grid sm:grid-cols-3 md:grid-cols-4 gap-4 overflow-x-auto sm:overflow-visible pb-4 sm:pb-0 snap-x snap-mandatory scrollbar-none overscroll-x-contain -mx-4 px-4 sm:mx-0 sm:px-0">
                 {(selectedCategory === 'trending'
                   ? popularMovies.slice(0, 8)
                   : selectedCategory === 'nowPlaying'
@@ -224,337 +200,219 @@ export default function Home({ onOpenPerson }) {
                   ? (noirMovies.length > 0 ? noirMovies : topRatedMovies).slice(0, 8)
                   : popularTv.slice(0, 8)
                 ).map((movie) => (
-                  <MovieCard key={`${movie.media_type || 'm'}-${movie.id}`} movie={movie} />
+                  <div key={`${movie.media_type || 'm'}-${movie.id}`} className="w-[42vw] min-w-[140px] max-w-[180px] sm:w-auto sm:min-w-0 sm:max-w-none shrink-0 snap-start">
+                    <MovieCard movie={movie} />
+                  </div>
                 ))}
               </div>
             )}
-          </div>
+          </section>
 
           {/* Editor's Pick */}
-          {editorPick && (
+          {editorPick && !bundleLoading && (
             <section className="space-y-4">
-              <div className="flex items-center justify-between border-b border-white/8 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
-                  <h2 className="font-display font-black text-xl sm:text-2xl text-white tracking-tight">
-                    Editor's Pick of the Week
-                  </h2>
-                </div>
-                <span className="text-xs font-mono text-[#ffa033]">Certified Masterwork</span>
+              <div className="border-b border-border pb-3">
+                <h2 className="font-display font-bold text-xl text-text-primary">
+                  Editor's Choice
+                </h2>
               </div>
 
-              <div className="relative rounded-3xl overflow-hidden border border-white/10 bg-[#101015] p-5 sm:p-7 flex flex-col md:flex-row gap-6 items-center">
+              <div className="relative rounded-2xl overflow-hidden border border-border bg-bg-elevated p-5 sm:p-6 md:p-8 flex flex-col md:flex-row gap-6 lg:gap-8 items-center">
                 {/* Backdrop ambient */}
                 <div 
-                  className="absolute inset-0 bg-cover bg-center opacity-15 blur-sm pointer-events-none"
+                  className="absolute inset-0 bg-cover bg-center opacity-10 blur-xl pointer-events-none"
                   style={{ backgroundImage: `url(${getBackdropUrl(editorPick.backdrop_path)})` }}
+                  aria-hidden="true"
                 />
 
-                <div className="w-36 sm:w-44 shrink-0 aspect-[2/3] rounded-2xl overflow-hidden border border-white/15 shadow-2xl relative z-10">
+                <div className="w-40 sm:w-48 shrink-0 aspect-[2/3] rounded-xl overflow-hidden border border-border shadow-lg relative z-10">
                   <img
                     src={getPosterUrl(editorPick.poster_path)}
                     alt={editorPick.title || editorPick.name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
 
-                <div className="space-y-3 relative z-10 flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="space-y-4 relative z-10 flex-1 min-w-0 text-center md:text-left">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
                     <RatingBadge rating={5} size="sm" />
-                    <span className="text-xs font-mono text-slate-400">
+                    <span className="text-xs font-mono text-text-muted">
                       {new Date(editorPick.release_date || editorPick.first_air_date || Date.now()).getFullYear()}
                     </span>
-                    <span className="px-2 py-0.5 rounded-full bg-white/6 text-[10px] font-mono text-slate-300">
-                      Editor's Choice
+                    <span className="px-2 py-0.5 rounded-sm bg-accent/10 text-accent text-[10px] font-mono font-bold uppercase">
+                      Curated
                     </span>
                   </div>
 
-                  <h3 className="text-2xl sm:text-3xl font-display font-black text-white tracking-tight">
+                  <h3 className="text-2xl sm:text-3xl font-display font-bold text-text-primary tracking-tight">
                     {editorPick.title || editorPick.name}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed line-clamp-3">
+                  <p className="text-sm text-text-secondary leading-relaxed line-clamp-3 max-w-2xl">
                     {editorPick.overview || 'A staggering tour de force in modern cinema. Visually unyielding and narratively peerless.'}
                   </p>
 
-                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3">
                     <Link
                       to={`/media/${editorPick.name ? 'tv' : 'movie'}/${editorPick.id}`}
-                      className="btn-fire py-2 px-4 rounded-xl text-xs font-display font-bold uppercase tracking-wider"
+                      className="btn-primary py-2.5 px-6"
                     >
-                      Explore Dossier & Reviews
-                    </Link>
-                    <Link
-                      to="/spaces"
-                      className="btn-secondary py-2 px-4 rounded-xl text-xs font-display font-bold uppercase tracking-wider"
-                    >
-                      Discuss in Spaces
+                      Read Dossier
                     </Link>
                   </div>
                 </div>
               </div>
             </section>
           )}
+
+          {/* Interactive Blind Pick Mystery Stack */}
+          {!bundleLoading && popularMovies.length > 0 && (
+            <section className="pt-4 hidden sm:block">
+              <MovieStack movies={topRatedMovies.length > 0 ? topRatedMovies : popularMovies} />
+            </section>
+          )}
+
         </div>
 
-        {/* Right Sticky Sidebar (Leaderboard, Spaces) */}
-        <aside className="space-y-6 lg:sticky lg:top-20">
-          {/* Most Interested Leaderboard (Moctale's Exact Feature) */}
-          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-4">
-            <div className="flex items-center justify-between border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-[#e50914]" />
-                <h3 className="font-display font-bold text-sm text-white">
-                  Most Interested
-                </h3>
-              </div>
+        {/* Right Sticky Sidebar (Leaderboard) */}
+        <aside className="space-y-6 xl:sticky xl:top-24">
+          <div className="rounded-2xl p-5 border border-border bg-bg-elevated space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="font-display font-bold text-sm text-text-primary">
+                Leaderboard
+              </h3>
 
               {/* Timeframe Select */}
-              <div className="flex items-center gap-1 text-[10px] font-mono">
+              <div className="flex items-center gap-1 bg-bg-surface p-1 rounded-lg border border-border">
                 {['week', 'month', 'all'].map((t) => (
                   <button
                     key={t}
                     onClick={() => setLeaderboardTimeframe(t)}
-                    className={`px-2 py-0.5 rounded-md capitalize transition-colors cursor-pointer ${
+                    className={`px-2 py-1 rounded-md text-[10px] font-mono uppercase transition-colors cursor-pointer ${
                       leaderboardTimeframe === t
-                        ? 'bg-[#ff6b00] text-white font-bold'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-text-primary text-bg-primary font-bold'
+                        : 'text-text-muted hover:text-text-primary'
                     }`}
                   >
-                    {t === 'all' ? 'All' : t === 'month' ? 'Month' : 'Week'}
+                    {t === 'all' ? 'All' : t}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Ranked List 1 to 5 */}
-            <div className="space-y-3">
-              {currentLeaderboard.map((item) => (
-                <Link
-                  key={item.id}
-                  to={`/media/${item.type}/${item.id}`}
-                  className="flex items-center gap-3 p-2 rounded-2xl hover:bg-white/5 transition-all group"
-                >
-                  <span className={`w-6 text-center font-display font-black text-sm shrink-0 ${
-                    item.rank === 1 ? 'text-[#e50914]' : item.rank === 2 ? 'text-[#ff6b00]' : item.rank === 3 ? 'text-[#ffa033]' : 'text-slate-400'
-                  }`}>
-                    #{item.rank}
-                  </span>
-
-                  <div className="w-10 h-14 rounded-lg overflow-hidden shrink-0 border border-white/10 bg-black/40">
-                    <img
-                      src={getPosterUrl(item.poster, 'w185')}
-                      alt={item.title}
-                      onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?q=80&w=185&auto=format&fit=crop';
-                      }}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <p className="font-display font-bold text-xs text-white truncate group-hover:text-[#ffa033] transition-colors">
-                      {item.title}
-                    </p>
-                    <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-                      <span className="text-amber-400">{item.venue}</span>
-                      <span>•</span>
-                      <span>{item.date}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-[9px] font-mono text-[#ff6b00]">
-                      <Flame className="w-3 h-3" />
-                      <span>{item.hype} interested</span>
+            {bundleLoading ? (
+              <div className="space-y-4 py-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex gap-3 items-center">
+                    <div className="w-6 h-6 skeleton-shimmer rounded-full" />
+                    <div className="w-10 h-14 skeleton-shimmer rounded-md" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 w-3/4 skeleton-shimmer rounded" />
+                      <div className="h-2 w-1/2 skeleton-shimmer rounded" />
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {currentLeaderboard.map((item) => (
+                  <Link
+                    key={item.id}
+                    to={`/media/${item.type}/${item.id}`}
+                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-bg-hover transition-colors group"
+                  >
+                    <span className={`w-5 text-center font-display font-bold text-sm shrink-0 ${
+                      item.rank === 1 ? 'text-gold' : item.rank === 2 ? 'text-slate-300' : item.rank === 3 ? 'text-amber-700' : 'text-text-muted'
+                    }`}>
+                      {item.rank}
+                    </span>
+
+                    <div className="w-10 h-14 rounded-md overflow-hidden shrink-0 border border-border bg-bg-surface">
+                      <img
+                        src={getPosterUrl(item.poster, 'w92')}
+                        alt={item.title}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      />
+                    </div>
+
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="font-display font-bold text-xs text-text-primary truncate group-hover:text-accent transition-colors">
+                        {item.title}
+                      </p>
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-text-muted">
+                        <span>{item.venue}</span>
+                        <span>·</span>
+                        <span>{item.date}</span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
 
             <Link
               to="/schedule"
-              className="w-full block text-center text-xs font-display font-bold text-slate-400 hover:text-[#ffa033] pt-2 border-t border-white/6"
+              className="w-full block text-center text-xs font-medium text-text-secondary hover:text-text-primary pt-3 border-t border-border transition-colors"
             >
               View Full Release Radar →
-            </Link>
-          </div>
-
-          {/* Quick Jump to Spaces */}
-          <div className="rounded-3xl p-5 border border-white/10 bg-[#101015] shadow-xl space-y-3">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-[#ff6b00]" />
-              <h4 className="font-display font-bold text-sm text-white">Cinephile Spaces</h4>
-            </div>
-            <p className="text-xs text-slate-400 font-sans leading-relaxed">
-              Join debates, drop honest film verdicts, and vote on community film meters with verified cinephiles.
-            </p>
-            <Link
-              to="/spaces"
-              className="btn-fire w-full py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-center block"
-            >
-              Enter Spaces Feed →
             </Link>
           </div>
         </aside>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-10 mt-12 space-y-12 relative z-10 pb-12">
-        {/* Streaming Platforms Carousels */}
-        {/* Netflix */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8 mt-16 space-y-12 pb-12">
+        {/* Member Reviews Feed */}
+        {!bundleLoading && recentReviews.length > 0 && (
           <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#e50914] shadow-[0_0_8px_#e50914]" />
-                <h3 className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
-                  Streaming on Netflix
-                </h3>
-              </div>
-              <Link to="/search?q=Netflix" className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1">
-                <span>View Row</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#e50914]" />
-              </Link>
+            <div className="border-b border-border pb-3">
+              <h2 className="font-display font-bold text-xl text-text-primary">
+                Recent Reviews
+              </h2>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
-              {netflixPicks.map(movie => (
-                <MovieCard key={`netflix-${movie.id}`} movie={movie} />
-              ))}
-            </div>
-          </section>
-
-          {/* Prime Video */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00a8e1] shadow-[0_0_8px_#00a8e1]" />
-                <h3 className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
-                  Worth Watching on Prime Video
-                </h3>
-              </div>
-              <Link to="/search?q=Prime" className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1">
-                <span>View Row</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#00a8e1]" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
-              {primePicks.map(movie => (
-                <MovieCard key={`prime-${movie.id}`} movie={movie} />
-              ))}
-            </div>
-          </section>
-
-          {/* JioHotstar */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/8 pb-3">
-              <div className="flex items-center gap-2.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ffa033] shadow-[0_0_8px_#ffa033]" />
-                <h3 className="font-display font-black text-lg sm:text-xl text-white tracking-tight">
-                  Popular on JioHotstar
-                </h3>
-              </div>
-              <Link to="/search?q=JioHotstar" className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1">
-                <span>View Row</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#ffa033]" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
-              {jioHotstarPicks.map(movie => (
-                <MovieCard key={`jio-${movie.id}`} movie={movie} />
-              ))}
-            </div>
-          </section>
-
-          {/* Anime & Animation Vault */}
-          {animeMovies.length > 0 && (
-            <section className="space-y-4">
-              <div className="flex items-center justify-between border-b border-white/8 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff3b47] shadow-[0_0_8px_#ff3b47]" />
-                  <h3 className="font-display font-black text-lg sm:text-xl text-white tracking-tight flex items-center gap-2">
-                    <span>Anime & Animation Masterpieces</span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#ff3b47]/15 text-[#ff4d5a] border border-[#ff3b47]/30 uppercase font-bold">
-                      Ghibli & Cult
-                    </span>
-                  </h3>
-                </div>
-                <Link to="/search?q=Anime" className="text-xs font-mono text-slate-400 hover:text-white flex items-center gap-1">
-                  <span>Explore Vault</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-[#ff3b47]" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 sm:gap-4">
-                {animeMovies.slice(0, 6).map(movie => (
-                  <MovieCard key={`anime-${movie.id}`} movie={movie} />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Interactive Blind Pick Mystery Stack */}
-          {popularMovies.length > 0 && (
-            <section className="pt-2">
-              <MovieStack movies={topRatedMovies.length > 0 ? topRatedMovies : popularMovies} />
-            </section>
-          )}
-
-          {/* Member Reviews & Verdicts Feed */}
-          {recentReviews.length > 0 && (
-            <section className="space-y-4 pt-2">
-              <div className="flex items-center justify-between border-b border-white/8 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ff6b00] shadow-[0_0_8px_#ff6b00]" />
-                  <h2 className="font-display font-black text-xl sm:text-2xl text-white tracking-tight">
-                    Fresh Cinephile Verdicts
-                  </h2>
-                </div>
-                <Link to="/spaces" className="text-xs font-display font-bold text-[#ffa033] hover:text-white uppercase tracking-wider">
-                  View Community Spaces →
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {recentReviews.slice(0, 6).map((rev) => (
-                  <div
-                    key={rev.id}
-                    className="bg-[#101015] border border-white/8 p-4.5 rounded-2xl space-y-3.5 flex flex-col justify-between hover:border-[#ff6b00]/40 transition-colors"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <Avatar username={rev.username} url={rev.avatar_url} className="w-7 h-7 ring-1 ring-white/15" />
-                          <Link to={`/profile/${rev.username}`} className="font-sans font-bold text-xs text-slate-200 hover:text-[#ffa033]">
-                            @{rev.username}
-                          </Link>
-                        </div>
-                        <RatingBadge rating={rev.rating} size="sm" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {recentReviews.slice(0, 6).map((rev) => (
+                <div
+                  key={rev.id}
+                  className="bg-bg-elevated border border-border p-5 rounded-2xl space-y-4 flex flex-col justify-between hover:border-border-hover transition-colors"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Avatar username={rev.username} url={rev.avatar_url} className="w-8 h-8" />
+                        <Link to={`/profile/${rev.username}`} className="font-medium text-sm text-text-primary hover:text-accent transition-colors truncate">
+                          @{rev.username}
+                        </Link>
                       </div>
+                      <RatingBadge rating={rev.rating} size="sm" />
+                    </div>
 
+                    <div>
                       <Link
                         to={`/media/${rev.media_type || 'movie'}/${rev.tmdb_movie_id}`}
-                        className="font-display font-bold text-sm text-slate-100 hover:text-[#ffa033] transition-colors block line-clamp-1"
+                        className="font-display font-bold text-base text-text-primary hover:text-accent transition-colors block line-clamp-1 mb-2"
                       >
                         {rev.title || `Film #${rev.tmdb_movie_id}`}
                       </Link>
-
                       {rev.review_text && (
-                        <p className="text-xs text-slate-300 italic line-clamp-3 leading-relaxed bg-black/40 p-3 rounded-xl border border-white/6 font-sans">
+                        <p className="text-sm text-text-secondary line-clamp-4 leading-relaxed font-sans">
                           "{rev.review_text}"
                         </p>
                       )}
                     </div>
-
-                    <span className="text-[10px] font-mono text-slate-400 block pt-1 border-t border-white/6">
-                      Logged: {new Date(rev.created_at).toLocaleDateString()}
-                    </span>
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
 
+                  <span className="text-xs text-text-muted block pt-4 border-t border-border">
+                    {new Date(rev.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

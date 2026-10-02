@@ -1,13 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Film, Star, Loader2, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_URL, getBackdropUrl } from '../config';
-import GlassSurface from './GlassSurface';
 
 /**
  * TrailerHero Component
  * Interactive widescreen trailer player and cinematic backdrop hero header.
- * Features buttery smooth crossfades between slides, Ken-Burns subtle zoom,
- * floating Apple-grade frosted glass play button, and mobile touch gestures.
  */
 export default function TrailerHero({
   movie,
@@ -148,36 +145,33 @@ export default function TrailerHero({
 
   return (
     <div
-      className="relative w-full rounded-3xl overflow-hidden border border-white/10 bg-[#070709] shadow-[0_20px_50px_rgba(0,0,0,0.85)] transition-all duration-300 select-none"
+      className="relative w-full rounded-2xl overflow-hidden bg-bg-elevated border border-border transition-all duration-300 select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Ambient backdrop glow */}
-      <div className="absolute top-0 inset-x-0 h-44 bg-gradient-to-b from-[#e50914]/12 via-transparent to-transparent pointer-events-none z-10" />
-
       {/* ================= TRAILER PLAYER STATE ================= */}
       {isPlayingTrailer ? (
         <div className="relative aspect-video w-full bg-black flex items-center justify-center animate-fade-in">
           <button
             onClick={handleStopTrailer}
-            className="absolute top-4 right-4 z-30 px-4 py-1.5 rounded-full bg-black/75 hover:bg-black/90 text-slate-200 hover:text-white border border-white/20 text-xs font-mono font-bold tracking-wider uppercase backdrop-blur-xl transition-all cursor-pointer shadow-xl"
+            className="absolute top-4 right-4 z-30 px-4 py-1.5 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 text-xs font-mono font-bold uppercase transition-all cursor-pointer shadow-lg"
           >
             ✕ Close Preview
           </button>
 
           {loading ? (
-            <div className="flex flex-col items-center gap-3 text-slate-400 font-mono text-xs">
-              <Loader2 className="w-8 h-8 animate-spin text-[#e50914]" />
-              <span>Loading Cinema Stream...</span>
+            <div className="flex flex-col items-center gap-3 text-text-muted font-mono text-xs">
+              <Loader2 className="w-8 h-8 animate-spin text-accent" />
+              <span>Loading Stream...</span>
             </div>
           ) : error || !videoKey ? (
             <div className="text-center p-6 md:p-8 space-y-3 font-sans max-w-md">
-              <Film className="w-10 h-10 text-[#e50914]/60 mx-auto mb-2" />
-              <h4 className="text-sm font-display font-bold text-slate-200 uppercase">
+              <Film className="w-10 h-10 text-accent/60 mx-auto mb-2" />
+              <h4 className="text-sm font-display font-bold text-text-primary uppercase">
                 Trailer Stream Unavailable
               </h4>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-text-muted">
                 No direct stream found. Search directly on YouTube:
               </p>
               <div className="pt-2 flex justify-center gap-2">
@@ -185,7 +179,7 @@ export default function TrailerHero({
                   href={`https://www.youtube.com/results?search_query=${encodeURIComponent(displayTitle + ' official trailer')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="btn-primary inline-flex items-center gap-1.5 text-xs py-2 px-4 font-bold"
+                  className="btn-primary inline-flex items-center gap-1.5 text-xs py-2 px-4"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                   <span>Search on YouTube</span>
@@ -210,41 +204,37 @@ export default function TrailerHero({
         </div>
       ) : (
         /* ================= CINEMATIC BACKDROP BANNER WITH CROSSFADE ================= */
-        <div className="relative aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[380px] sm:min-h-[380px] md:min-h-[460px] w-full group overflow-hidden">
+        <div className="relative aspect-[4/3] sm:aspect-[16/8] md:aspect-[21/9] min-h-[380px] sm:min-h-[380px] md:min-h-[460px] w-full group overflow-hidden bg-bg-primary">
           {/* Smooth Crossfading Backdrop Image */}
           {backdropUrl ? (
             <>
               {/* Skeleton Placeholder */}
               {!isImageLoaded && (
-                <div className="absolute inset-0 bg-[#101015] skeleton-shimmer z-0" />
+                <div className="absolute inset-0 bg-bg-elevated skeleton-shimmer z-0" />
               )}
               <img
                 key={`bg-${activeMovie?.id}`}
                 src={backdropUrl}
                 alt={displayTitle}
                 onLoad={() => setIsImageLoaded(true)}
-                className={`w-full h-full object-cover object-center transition-all duration-700 ease-out group-hover:scale-103 ${
-                  isCrossfading || !isImageLoaded ? 'opacity-40 scale-102 blur-sm' : 'opacity-100 scale-100 blur-0'
+                className={`w-full h-full object-cover object-center transition-all duration-700 ease-out ${
+                  isCrossfading || !isImageLoaded ? 'opacity-40 blur-sm scale-105' : 'opacity-100 blur-0 scale-100'
                 }`}
               />
             </>
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-slate-900 via-[#121218] to-black" />
+            <div className="w-full h-full bg-bg-surface" />
           )}
 
-          {/* High-Definition Multi-Stop Cinema Scrim */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070709] via-[#070709]/90 to-transparent pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070709]/95 via-[#070709]/60 to-transparent pointer-events-none" />
+          {/* Scrims */}
+          <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/80 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-bg-primary/90 via-bg-primary/40 to-transparent pointer-events-none hidden md:block" />
 
-          {/* Navigation Controls: Desktop Hover Arrows only */}
+          {/* Navigation Controls */}
           {onPrev && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onPrev();
-              }}
-              className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-xl items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer shadow-xl hover:border-[#e50914]/70"
-              title="Previous Movie"
+              onClick={(e) => { e.stopPropagation(); onPrev(); }}
+              className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black text-white border border-white/20 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-lg hover:border-accent"
               aria-label="Previous Slide"
             >
               <ChevronLeft className="w-5 h-5 text-white" />
@@ -253,52 +243,31 @@ export default function TrailerHero({
 
           {onNext && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onNext();
-              }}
-              className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 backdrop-blur-xl items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-105 cursor-pointer shadow-xl hover:border-[#e50914]/70"
-              title="Next Movie"
+              onClick={(e) => { e.stopPropagation(); onNext(); }}
+              className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-black/60 hover:bg-black text-white border border-white/20 items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer shadow-lg hover:border-accent"
               aria-label="Next Slide"
             >
               <ChevronRight className="w-5 h-5 text-white" />
             </button>
           )}
 
-          {/* Centered Apple Frosted Glass Play Button */}
+          {/* Play Button Container */}
           <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-            <div className="pointer-events-auto">
-              <GlassSurface
-                width="auto"
-                height="auto"
-                borderRadius={9999}
-                backgroundOpacity={0.4}
-                blur={16}
-                borderOpacity={0.22}
-                className="shadow-[0_12px_40px_rgba(0,0,0,0.9),0_0_30px_rgba(229,9,20,0.2)] hover:border-white/60 transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer group/btn"
-              >
-                <button
-                  onClick={handleStartTrailer}
-                  className="flex items-center gap-2.5 px-4.5 py-2.5 sm:px-6 sm:py-3 text-white/95 hover:text-white cursor-pointer"
-                  title="Play Official Trailer"
-                >
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/20 group-hover/btn:bg-gradient-to-r group-hover/btn:from-[#e50914] group-hover/btn:to-[#ff3b47] group-hover/btn:text-white text-white flex items-center justify-center transition-all shadow-inner">
-                    <Play className="w-4 h-4 fill-current ml-0.5" />
-                  </div>
-                  <div className="flex flex-col items-start justify-center text-left">
-                    <span className="font-display font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-100 group-hover/btn:text-white leading-none">
-                      Watch Trailer
-                    </span>
-                    <span className="text-[9px] font-mono text-slate-400 group-hover/btn:text-white/80 mt-1 uppercase tracking-wide">
-                      Plays In-App
-                    </span>
-                  </div>
-                </button>
-              </GlassSurface>
-            </div>
+            <button
+              onClick={handleStartTrailer}
+              className="pointer-events-auto flex flex-col items-center justify-center gap-3 text-white/90 hover:text-white cursor-pointer group/play transition-transform active:scale-95"
+              title="Play Official Trailer"
+            >
+              <div className="w-16 h-16 rounded-full bg-accent/90 hover:bg-accent flex items-center justify-center transition-all shadow-[0_0_30px_rgba(229,9,20,0.3)] hover:shadow-[0_0_40px_rgba(229,9,20,0.5)] border border-white/10">
+                <Play className="w-6 h-6 fill-current ml-1" />
+              </div>
+              <span className="font-display font-bold text-xs uppercase tracking-wider text-white">
+                Watch Trailer
+              </span>
+            </button>
           </div>
 
-          {/* Bottom Title & Metadata Overlay with Smooth Entrance */}
+          {/* Bottom Title & Metadata Overlay */}
           {showMeta && (
             <div
               key={`meta-${activeMovie?.id}`}
@@ -306,29 +275,29 @@ export default function TrailerHero({
                 isCrossfading ? 'opacity-30 translate-y-2' : 'opacity-100 translate-y-0'
               }`}
             >
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-full bg-[#e50914]/15 text-[#ff4d5a] border border-[#e50914]/30 text-[10px] sm:text-xs font-mono font-semibold uppercase shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 rounded-sm bg-accent text-white text-[10px] font-mono font-bold uppercase tracking-wide">
                   {activeMovie?.media_type === 'tv' || activeMovie?.first_air_date ? 'Series' : 'Feature Film'}
                 </span>
                 {year && (
-                  <span className="font-mono text-[10px] sm:text-xs text-slate-300 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
+                  <span className="font-mono text-xs text-text-secondary">
                     {year}
                   </span>
                 )}
                 {rating && (
-                  <span className="font-mono text-[10px] sm:text-xs text-[#ffb800] font-bold flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
-                    <Star className="w-3 h-3 fill-[#ffb800] text-[#ffb800]" />
+                  <span className="font-mono text-xs text-gold font-bold flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-current" />
                     {rating}
                   </span>
                 )}
               </div>
 
-              <h2 className="font-display font-black text-xl sm:text-3xl md:text-4xl text-white tracking-tight leading-tight drop-shadow-2xl line-clamp-2">
+              <h2 className="font-display font-bold text-2xl sm:text-3xl md:text-5xl text-white tracking-tight leading-tight line-clamp-2 drop-shadow-md">
                 {displayTitle}
               </h2>
 
               {activeMovie?.overview && (
-                <p className="text-xs sm:text-sm text-slate-300/95 font-sans mt-2 line-clamp-2 leading-relaxed drop-shadow max-w-xl hidden sm:block">
+                <p className="text-sm text-text-secondary font-sans mt-2 line-clamp-2 leading-relaxed max-w-xl hidden sm:block drop-shadow-sm">
                   {activeMovie.overview}
                 </p>
               )}

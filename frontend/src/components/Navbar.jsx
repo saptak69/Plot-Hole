@@ -1,29 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Search, Users, FolderPlus, LogOut, Home, User, Compass, X, Film, Sparkles, TrendingUp, ArrowRight,
-  Flame, Calendar, MessageSquare, Bookmark, LayoutGrid, Bell, ChevronDown, Check, ExternalLink, Ticket, Trophy,
-  Star, Clapperboard, Tv, ShieldCheck, Heart
+import {
+  Search, LogOut, Home, User, Compass, X, Film,
+  Flame, Calendar, MessageSquare, Bookmark, ArrowRight,
+  Sparkles, TrendingUp, Tv
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { API_URL, getPosterUrl, getAuthHeaders } from '../config';
+import { API_URL, getPosterUrl } from '../config';
 import Avatar from './Avatar';
 import Logo from './Logo';
-import GlassSurface from './GlassSurface';
-import GlassTabBar from './GlassTabBar';
 import RatingBadge from './RatingBadge';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [liveResults, setLiveResults] = useState([]);
   const [isLiveLoading, setIsLiveLoading] = useState(false);
   const searchInputRef = useRef(null);
-  const modalInputRef = useRef(null);
+  const menuRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -31,65 +27,61 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const lastScrollY = useRef(0);
 
+  // Hide/show on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrolled(currentScrollY > 15);
-      if (currentScrollY > lastScrollY.current && currentScrollY > 120) {
-        setVisible(false);
-      } else {
-        setVisible(true);
-      }
-      lastScrollY.current = currentScrollY;
+      const y = window.scrollY;
+      setScrolled(y > 15);
+      setVisible(y <= lastScrollY.current || y < 120);
+      lastScrollY.current = y;
     };
-
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on outside click
+  // Close menu on click outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    const handleClick = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMenuOpen(false);
+      }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (isMenuOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isMenuOpen]);
 
-  // Global Ctrl+K / Cmd+K search shortcut
+  // Cmd+K / Ctrl+K shortcut
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKey = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        setIsSearchModalOpen(true);
+        setIsSearchOpen(true);
       }
       if (e.key === 'Escape') {
-        setIsSearchModalOpen(false);
-        setIsOpen(false);
+        setIsSearchOpen(false);
+        setIsMenuOpen(false);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Autofocus search modal input when opened
+  // Focus search input when modal opens
   useEffect(() => {
-    if (isSearchModalOpen) {
-      setTimeout(() => {
-        modalInputRef.current?.focus();
-      }, 100);
+    if (isSearchOpen) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
     } else {
       setLiveResults([]);
     }
-  }, [isSearchModalOpen]);
+  }, [isSearchOpen]);
 
-  // Live search debounced fetch
+  // Live search debounce
   useEffect(() => {
     if (!searchQuery.trim()) {
       setLiveResults([]);
       setIsLiveLoading(false);
       return;
     }
-
     const timer = setTimeout(async () => {
       setIsLiveLoading(true);
       try {
@@ -99,145 +91,142 @@ export default function Navbar() {
           setLiveResults((data.results || []).slice(0, 6));
         }
       } catch (err) {
-        console.error('Live search error:', err);
+        console.error('Search error:', err);
       } finally {
         setIsLiveLoading(false);
       }
     }, 220);
-
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     if (!searchQuery.trim()) return;
     navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     setSearchQuery('');
-    setIsOpen(false);
-    setIsSearchModalOpen(false);
+    setIsSearchOpen(false);
   };
 
-  const handleLinkClick = () => {
-    setIsOpen(false);
-    setIsSearchModalOpen(false);
+  const closeAll = () => {
+    setIsMenuOpen(false);
+    setIsSearchOpen(false);
   };
 
-  const currentActiveTab = () => {
-    const path = location.pathname;
-    if (path === '/' || path.startsWith('/explore')) return '/explore';
-    if (path.startsWith('/schedule')) return '/schedule';
-    if (path.startsWith('/spaces')) return '/spaces';
-    if (path.startsWith('/collections') || path.startsWith('/lists')) return '/collections';
-    return '';
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/' || location.pathname.startsWith('/explore');
+    return location.pathname.startsWith(path);
   };
+
+  const navLinks = [
+    { path: '/', label: 'Discover', icon: Flame },
+    { path: '/schedule', label: 'Schedule', icon: Calendar },
+    { path: '/spaces', label: 'Spaces', icon: MessageSquare },
+    { path: '/collections', label: 'Collections', icon: Bookmark },
+  ];
 
   return (
     <>
-      {/* Top Header - Red, Orange & Charcoal Glass Header */}
+      {/* ─── Desktop Header ─── */}
       <header
-        className={`sticky z-50 transition-all duration-300 select-none py-2.5 sm:py-3 px-4 sm:px-6 md:px-10 ${
-          visible ? 'top-0' : '-top-28'
+        className={`sticky z-50 transition-all duration-200 py-3 px-4 sm:px-6 md:px-8 ${
+          visible ? 'top-0' : '-top-20'
         } ${
           scrolled
-            ? 'bg-[#08080b]/85 backdrop-blur-2xl border-b border-white/8 shadow-[0_6px_35px_rgba(0,0,0,0.85)]'
-            : 'bg-transparent border-b border-transparent shadow-none'
+            ? 'bg-bg-primary/90 backdrop-blur-xl border-b border-border shadow-lg'
+            : 'bg-transparent border-b border-transparent'
         }`}
+        role="banner"
       >
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-4 md:gap-6 w-full">
-          {/* Left: Brand Logo */}
-          <div className="flex items-center justify-start shrink-0">
-            <Logo size="sm" onClick={handleLinkClick} />
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 w-full">
+          {/* Logo */}
+          <div className="shrink-0">
+            <Logo size="sm" onClick={closeAll} />
           </div>
 
-          {/* Center: Main Moctale-Style Tabs */}
-          <div className="hidden lg:flex items-center justify-center">
-            <GlassTabBar
-              tabs={[
-                { id: '/explore', label: 'Explore', icon: Flame },
-                { id: '/schedule', label: 'Schedule', icon: Calendar },
-                { id: '/spaces', label: 'Spaces', icon: MessageSquare },
-                { id: '/collections', label: 'Collections', icon: Bookmark }
-              ]}
-              activeTab={currentActiveTab()}
-              onTabChange={(tabId) => navigate(tabId)}
-            />
-          </div>
-          {/* Right: Search & Profile */}
-          <div className="flex items-center justify-end gap-2 sm:gap-2.5">
-            {/* Universal Search Bar (Desktop & Tablet) */}
-            <form onSubmit={handleSearchSubmit} className="relative hidden sm:block">
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search films, actors..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchModalOpen(true)}
-                className="w-32 sm:w-36 md:w-40 lg:w-48 xl:w-56 bg-white/6 hover:bg-white/10 focus:bg-black/90 text-white placeholder-slate-400 text-xs font-sans rounded-full pl-9 pr-8 py-2 border border-white/12 focus:border-[#ff6b00] focus:ring-1 focus:ring-[#ff6b00] transition-all outline-none"
-              />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <kbd className="hidden lg:inline-block absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-slate-400 border border-white/10 pointer-events-none">
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+            {navLinks.map(({ path, label, icon: Icon }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 active:scale-95 ${
+                  isActive(path)
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {/* Right: Search + Auth */}
+          <div className="flex items-center gap-2">
+            {/* Desktop search trigger */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-surface border border-border text-text-muted hover:text-text-primary hover:border-border-hover text-xs transition-all duration-200 active:scale-95 cursor-pointer"
+              aria-label="Search films"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Search...</span>
+              <kbd className="hidden lg:inline text-[9px] font-mono px-1.5 py-0.5 rounded bg-bg-primary text-text-faint border border-border">
                 ⌘K
               </kbd>
-            </form>
-
-            {/* Mobile Search Button */}
-            <button
-              onClick={() => setIsSearchModalOpen(true)}
-              className="sm:hidden p-2 rounded-xl bg-white/6 border border-white/10 text-slate-300 hover:text-white"
-            >
-              <Search className="w-4 h-4" />
             </button>
 
-            {/* Auth Dropdown & User Avatar */}
+            {/* Auth */}
             {user ? (
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
-                  onClick={() => setIsOpen(!isOpen)}
-                  className="flex items-center rounded-full border border-white/20 hover:border-[#ff6b00] transition-all focus:outline-none cursor-pointer overflow-hidden p-0 shadow-md"
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center rounded-full border-2 border-border hover:border-border-active transition-all duration-200 active:scale-95 cursor-pointer overflow-hidden"
+                  aria-expanded={isMenuOpen}
+                  aria-label="User menu"
                 >
-                  <Avatar username={user.username} url={user.avatar_url} className="w-8 h-8 sm:w-8.5 sm:h-8.5" />
+                  <Avatar username={user.username} url={user.avatar_url} className="w-8 h-8" />
                 </button>
 
-                {isOpen && (
-                  <div
-                    className="absolute right-0 mt-3 w-56 bg-[#0e0e13]/95 backdrop-blur-2xl border border-white/12 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.95)] py-2 text-left z-50 animate-fade-up"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <div className="px-4 py-3 border-b border-white/8">
-                      <p className="text-[11px] font-mono text-slate-400">Signed in as</p>
-                      <p className="text-sm font-display font-bold text-white truncate mt-0.5">@{user.username}</p>
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-bg-elevated border border-border rounded-xl shadow-2xl py-1.5 animate-fade-up z-50">
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-[10px] font-mono text-text-muted">Signed in as</p>
+                      <p className="text-sm font-display font-bold text-text-primary truncate mt-0.5">@{user.username}</p>
                     </div>
 
                     <Link
                       to={`/profile/${user.username}`}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
+                      onClick={closeAll}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors"
                     >
-                      <User className="w-4 h-4 text-[#ff6b00]" />
-                      <span>Vault Profile</span>
+                      <User className="w-4 h-4 text-warm" />
+                      <span>Profile</span>
                     </Link>
 
                     <Link
                       to="/collections?tab=my"
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
+                      onClick={closeAll}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors"
                     >
-                      <Bookmark className="w-4 h-4 text-[#ff6b00]" />
+                      <Bookmark className="w-4 h-4 text-warm" />
                       <span>My Collections</span>
                     </Link>
 
                     <Link
                       to="/collections?tab=watch-later"
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-slate-200 hover:text-white hover:bg-white/6 transition-colors"
+                      onClick={closeAll}
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors"
                     >
-                      <Film className="w-4 h-4 text-[#e50914]" />
-                      <span>Watch Later Queue</span>
+                      <Film className="w-4 h-4 text-accent" />
+                      <span>Watchlist</span>
                     </Link>
 
-                    <div className="my-1 border-t border-white/8" />
+                    <div className="my-1 border-t border-border" />
 
                     <button
-                      onClick={logout}
-                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-sans font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
+                      onClick={() => { logout(); closeAll(); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors cursor-pointer text-left"
                     >
                       <LogOut className="w-4 h-4" />
                       <span>Sign Out</span>
@@ -246,17 +235,11 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
-                <Link
-                  to="/login"
-                  className="px-3.5 py-2 rounded-xl text-xs font-display font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap"
-                >
+              <div className="hidden sm:flex items-center gap-2">
+                <Link to="/login" className="px-3 py-2 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary transition-colors">
                   Sign In
                 </Link>
-                <Link
-                  to="/signup"
-                  className="btn-fire py-2 px-4 rounded-xl text-xs font-display font-bold uppercase tracking-wider shadow-md whitespace-nowrap"
-                >
+                <Link to="/signup" className="btn-primary py-2 px-4 text-xs font-medium rounded-lg">
                   Sign Up
                 </Link>
               </div>
@@ -265,259 +248,193 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Mobile Floating Bottom Dock (Moctale-inspired 5-tab glass dock) */}
-      <div className="lg:hidden fixed bottom-3 inset-x-3 z-50 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={26}
-          backgroundOpacity={0.4}
-          blur={20}
-          borderOpacity={0.16}
-          className="glass-surface--dock shadow-[0_16px_50px_rgba(0,0,0,0.95),0_0_20px_rgba(255,107,0,0.15)] p-1"
-        >
-          <div className="flex items-center justify-around w-full py-1 px-1 gap-1">
-            <Link
-              to="/explore"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
-                currentActiveTab() === '/explore'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/6'
-              }`}
-            >
-              <Flame className="w-4 h-4" />
-              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Explore</span>
-            </Link>
-
-            <Link
-              to="/schedule"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
-                currentActiveTab() === '/schedule'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/6'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Schedule</span>
-            </Link>
-
-            <Link
-              to="/spaces"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
-                currentActiveTab() === '/spaces'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/6'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Spaces</span>
-            </Link>
-
-            <Link
-              to="/collections"
-              className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
-                currentActiveTab() === '/collections'
-                  ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
-                  : 'text-slate-300 hover:text-white hover:bg-white/6'
-              }`}
-            >
-              <Bookmark className="w-4 h-4" />
-              <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Lists</span>
-            </Link>
-
-            {user ? (
-              <Link
-                to={`/profile/${user.username}`}
-                className={`flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl transition-all ${
-                  location.pathname.startsWith(`/profile/${user.username}`)
-                    ? 'bg-gradient-to-r from-[#e50914] to-[#ff6b00] text-white shadow-[0_0_14px_rgba(255,107,0,0.45)]'
-                    : 'text-slate-300 hover:text-white hover:bg-white/6'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Profile</span>
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="flex-1 flex flex-col items-center justify-center py-2 px-1 rounded-2xl text-slate-300 hover:text-white hover:bg-white/6"
-              >
-                <User className="w-4 h-4" />
-                <span className="text-[9px] font-display font-bold uppercase tracking-wider mt-0.5">Sign In</span>
-              </Link>
-            )}
-          </div>
-        </GlassSurface>
-      </div>
-
-
-      {/* Quick Search Overlay Modal (Universal & Mobile Responsive) */}
-      {isSearchModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-8 sm:pt-20 px-3 sm:px-4 bg-black/85 backdrop-blur-2xl animate-in fade-in duration-200">
-          <div
-            className="w-full max-w-2xl bg-[#0e0e12]/95 border border-white/12 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95),0_0_40px_rgba(229,9,20,0.18)] overflow-hidden text-left"
-            style={{ animation: 'fade-up 220ms cubic-bezier(0.16, 1, 0.3, 1) both' }}
+      {/* ─── Mobile Bottom Navigation ─── */}
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-bg-primary/95 backdrop-blur-xl border-t border-border pb-[env(safe-area-inset-bottom)]"
+        aria-label="Mobile navigation"
+      >
+        <div className="flex items-center justify-around h-[68px] px-1">
+          <Link
+            to="/"
+            onClick={closeAll}
+            className={`flex-1 flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+              isActive('/') ? 'text-accent' : 'text-text-muted hover:text-text-primary'
+            }`}
           >
-            {/* Search Input Bar */}
-            <form onSubmit={handleSearchSubmit} className="relative p-3.5 sm:p-4 border-b border-white/8 flex items-center gap-3">
-              <Search className="w-5 h-5 text-[#e50914] shrink-0" />
+            <Flame className="w-[22px] h-[22px]" />
+            <span className="text-[10px] font-medium mt-1">Discover</span>
+          </Link>
+
+          <button
+            onClick={() => {
+              setIsSearchOpen(true);
+              setIsMenuOpen(false);
+            }}
+            className={`flex-1 flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 cursor-pointer ${
+              isSearchOpen ? 'text-accent' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Search className="w-[22px] h-[22px]" />
+            <span className="text-[10px] font-medium mt-1">Search</span>
+          </button>
+
+          <Link
+            to="/schedule"
+            onClick={closeAll}
+            className={`flex-1 flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+              isActive('/schedule') ? 'text-accent' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Calendar className="w-[22px] h-[22px]" />
+            <span className="text-[10px] font-medium mt-1">Schedule</span>
+          </Link>
+
+          <Link
+            to="/collections"
+            onClick={closeAll}
+            className={`flex-1 flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+              isActive('/collections') ? 'text-accent' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <Bookmark className="w-[22px] h-[22px]" />
+            <span className="text-[10px] font-medium mt-1">Collections</span>
+          </Link>
+
+          <Link
+            to={user ? `/profile/${user.username}` : '/login'}
+            onClick={closeAll}
+            className={`flex-1 flex flex-col items-center justify-center h-full rounded-xl transition-all duration-200 active:scale-95 ${
+              location.pathname.startsWith('/profile') ? 'text-accent' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            <User className="w-[22px] h-[22px]" />
+            <span className="text-[10px] font-medium mt-1">{user ? 'Profile' : 'Sign In'}</span>
+          </Link>
+        </div>
+      </nav>
+
+      {/* ─── Search Modal ─── */}
+      {isSearchOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-start justify-center pt-12 sm:pt-20 px-4 bg-black/80 backdrop-blur-lg animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsSearchOpen(false);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Search films"
+        >
+          <div className="w-full max-w-xl bg-bg-elevated border border-border rounded-2xl shadow-2xl overflow-hidden animate-fade-up">
+            {/* Search input */}
+            <form onSubmit={handleSearchSubmit} className="relative p-4 border-b border-border flex items-center gap-3">
+              <Search className="w-5 h-5 text-accent shrink-0" />
               <input
-                ref={modalInputRef}
+                ref={searchInputRef}
                 type="text"
-                placeholder="Search films, series, directors, critics..."
+                placeholder="Search films, series, people..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearchSubmit(e);
-                  }
-                }}
-                className="w-full bg-transparent text-white placeholder-slate-400 font-sans text-sm sm:text-base outline-none pr-8"
+                className="w-full bg-transparent text-text-primary placeholder-text-muted text-sm outline-none"
+                aria-label="Search query"
               />
-              <button type="submit" className="sr-only">Submit</button>
               {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="text-slate-400 hover:text-white p-1 rounded-full hover:bg-white/10"
-                >
+                <button type="button" onClick={() => setSearchQuery('')} className="text-text-muted hover:text-text-primary p-1 rounded-md hover:bg-bg-surface transition-colors">
                   <X className="w-4 h-4" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setIsSearchModalOpen(false)}
-                className="p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors shrink-0"
-              >
-                <X className="w-4 h-4" />
+              <button type="button" onClick={() => setIsSearchOpen(false)} className="text-text-muted hover:text-text-primary p-1 rounded-md hover:bg-bg-surface transition-colors shrink-0">
+                <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg-surface text-text-faint border border-border">ESC</kbd>
               </button>
             </form>
 
-            {/* Modal Body */}
-            <div className="p-4 sm:p-6 max-h-[70vh] overflow-y-auto space-y-5 scrollbar-none">
-              {/* Quick Trending Tags */}
+            {/* Results */}
+            <div className="p-4 max-h-[60vh] overflow-y-auto space-y-4">
+              {/* Quick tags when empty */}
               {!searchQuery.trim() && (
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-[11px] font-mono font-bold uppercase text-slate-400">
-                    <TrendingUp className="w-3.5 h-3.5 text-[#ffb800]" />
-                    <span>Popular Searches</span>
-                  </div>
+                  <p className="text-[10px] font-mono font-semibold uppercase text-text-muted flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3" />
+                    Popular
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {['Dune', 'Oppenheimer', 'Interstellar', 'Severance', 'Christopher Nolan', 'Denis Villeneuve', 'Pure Cinema'].map((tag) => (
+                    {['Dune', 'Oppenheimer', 'Interstellar', 'Severance', 'Christopher Nolan', 'Denis Villeneuve'].map((tag) => (
                       <button
                         key={tag}
-                        type="button"
-                        onClick={() => handleQuickTagClick(tag)}
-                        className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-[#e50914]/20 border border-white/8 hover:border-[#e50914]/40 text-xs font-sans text-slate-200 hover:text-white transition-all cursor-pointer flex items-center gap-1.5"
+                        onClick={() => { setSearchQuery(tag); }}
+                        className="px-3 py-1.5 rounded-lg bg-bg-surface hover:bg-bg-hover border border-border text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                       >
-                        <Sparkles className="w-3 h-3 text-[#e50914]" />
-                        <span>{tag}</span>
+                        {tag}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Live Search Results */}
+              {/* Loading */}
               {isLiveLoading && (
-                <div className="p-6 text-center text-xs font-mono text-slate-400 animate-pulse">
-                  SEARCHING VAULT ARCHIVES...
+                <div className="py-6 text-center">
+                  <div className="w-5 h-5 mx-auto rounded-full border-2 border-border border-t-accent animate-spin" />
                 </div>
               )}
 
+              {/* No results */}
               {!isLiveLoading && searchQuery.trim() && liveResults.length === 0 && (
-                <div className="p-6 text-center text-xs font-mono text-slate-500">
-                  No cinephile records found for "{searchQuery}"
+                <div className="py-8 text-center space-y-2">
+                  <p className="text-sm font-medium text-text-secondary">No results for "{searchQuery}"</p>
+                  <p className="text-xs text-text-muted">Press Enter for a full search</p>
                 </div>
               )}
 
+              {/* Results list */}
               {!isLiveLoading && liveResults.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[10px] font-mono font-bold uppercase text-slate-400 block pb-1">
-                    Instant Matches ({liveResults.length})
-                  </span>
-                  <div className="space-y-1.5">
-                    {liveResults.map((item) => (
-                      item.media_type === 'user' ? (
-                        <Link
-                          key={`user-${item.id}`}
-                          to={`/profile/${item.username}`}
-                          onClick={handleLinkClick}
-                          className="flex items-center justify-between p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/6 transition-all"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <Avatar username={item.username} url={item.avatar_url} className="w-9 h-9" />
-                            <div className="min-w-0">
-                              <span className="font-display font-bold text-sm text-white block truncate">
-                                @{item.username}
-                              </span>
-                              <span className="text-[10px] font-mono text-slate-400 truncate block">
-                                Critic Profile
-                              </span>
-                            </div>
-                          </div>
-                          <ArrowRight className="w-4 h-4 text-slate-500" />
-                        </Link>
-                      ) : (
-                        <Link
-                          key={`movie-${item.id}`}
-                          to={`/media/${item.media_type || 'movie'}/${item.id}`}
-                          onClick={handleLinkClick}
-                          className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/6 transition-all"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-14 rounded-lg overflow-hidden bg-black shrink-0 border border-white/10">
-                              <img
-                                src={getPosterUrl(item.poster_path, 'w92')}
-                                alt={item.title || item.name}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
-                              />
-                            </div>
-                            <div className="min-w-0 space-y-0.5">
-                              <p className="font-display font-bold text-sm text-white truncate">
-                                {item.title || item.name}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-mono text-slate-400 uppercase">
-                                  {item.media_type === 'tv' ? 'Series' : 'Film'}
-                                </span>
-                                {(item.release_date || item.first_air_date) && (
-                                  <span className="text-[10px] font-mono text-slate-500">
-                                    {(item.release_date || item.first_air_date).substring(0, 4)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          {item.vote_average > 0 && (
-                            <RatingBadge rating={Math.round(item.vote_average / 2)} size="xs" />
+                <div className="space-y-1">
+                  {liveResults.map((item) => (
+                    item.media_type === 'user' ? (
+                      <Link
+                        key={`user-${item.id}`}
+                        to={`/profile/${item.username}`}
+                        onClick={closeAll}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-bg-surface transition-colors"
+                      >
+                        <Avatar username={item.username} url={item.avatar_url} className="w-9 h-9" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text-primary truncate">@{item.username}</p>
+                          <p className="text-[10px] font-mono text-text-muted">User</p>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-text-faint" />
+                      </Link>
+                    ) : (
+                      <Link
+                        key={`movie-${item.id}`}
+                        to={`/media/${item.media_type || 'movie'}/${item.id}`}
+                        onClick={closeAll}
+                        className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-bg-surface transition-colors"
+                      >
+                        <div className="w-9 h-13 rounded-md overflow-hidden bg-bg-primary shrink-0 border border-border">
+                          {item.poster_path && (
+                            <img src={getPosterUrl(item.poster_path, 'w92')} alt={item.title || item.name} className="w-full h-full object-cover" loading="lazy" />
                           )}
-                        </Link>
-                      )
-                    ))}
-                  </div>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-text-primary truncate">{item.title || item.name}</p>
+                          <p className="text-[10px] font-mono text-text-muted">
+                            {item.media_type === 'tv' ? 'Series' : 'Film'}
+                            {(item.release_date || item.first_air_date) && ` · ${(item.release_date || item.first_air_date).substring(0, 4)}`}
+                          </p>
+                        </div>
+                        {item.vote_average > 0 && (
+                          <RatingBadge rating={Math.round(item.vote_average / 2)} size="xs" />
+                        )}
+                      </Link>
+                    )
+                  ))}
 
                   <button
                     onClick={handleSearchSubmit}
-                    className="w-full py-2.5 mt-2 rounded-xl bg-[#e50914]/20 hover:bg-[#e50914]/30 border border-[#e50914]/40 text-xs font-mono font-bold text-white uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    className="w-full py-2.5 mt-2 rounded-xl bg-accent/10 hover:bg-accent/15 border border-accent/20 text-xs font-medium text-text-primary flex items-center justify-center gap-2 transition-colors cursor-pointer"
                   >
-                    <span>View All Results for "{searchQuery}"</span>
+                    <span>View all results for "{searchQuery}"</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )}
-
-              {!isLiveLoading && searchQuery && liveResults.length === 0 && (
-                <div className="p-8 text-center text-slate-400 space-y-2">
-                  <p className="text-sm font-display font-bold text-slate-200">No instant preview found</p>
-                  <p className="text-xs font-sans text-slate-400">Press Enter to perform a full database search for "{searchQuery}".</p>
-                  <button
-                    onClick={handleSearchSubmit}
-                    className="btn-primary py-2 px-5 text-xs font-bold font-mono mt-2"
-                  >
-                    Run Full Search
                   </button>
                 </div>
               )}

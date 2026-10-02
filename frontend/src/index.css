@@ -1,78 +1,80 @@
 @import "tailwindcss";
 
-/* Component CSS – imported explicitly for production bundle inclusion */
-@import "./components/GlassSurface.css";
-@import "./components/FaultyTerminal.css";
+/* Component CSS */
 
 @theme {
-  --color-brand-bg: #08080b;
-  --color-brand-card: #101015;
-  --color-brand-card-hover: #171720;
-  --color-brand-surface: rgba(16, 16, 21, 0.8);
-  --color-brand-border: rgba(255, 255, 255, 0.08);
-  --color-brand-border-glow: rgba(255, 107, 0, 0.35);
-  --color-brand-text: #f5f5f7;
-  --color-brand-text-muted: #94949e;
-  --color-brand-heading: #ffffff;
+  /* ============================================================
+     PLOTHOLE 2.0 DESIGN SYSTEM
+     Editorial Cinema Dark Theme
+     ============================================================ */
 
-  /* Red, Orange & Charcoal Cinema Fire Palette */
-  --color-brand-red: #e50914;
-  --color-brand-red-light: #ff3b47;
-  --color-brand-red-dark: #b80710;
-  --color-brand-red-glow: rgba(229, 9, 20, 0.4);
+  /* Background Layers — off-black, never pure #000 */
+  --color-bg-primary: #09090b;
+  --color-bg-elevated: #111113;
+  --color-bg-surface: #18181b;
+  --color-bg-hover: #1f1f23;
+  --color-bg-active: #27272a;
 
-  /* Sunset Molten Orange */
-  --color-brand-orange: #ff6b00;
-  --color-brand-orange-light: #ffa033;
-  --color-brand-orange-dark: #cc5500;
-  --color-brand-orange-glow: rgba(255, 107, 0, 0.35);
+  /* Text Hierarchy */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #71717a;
+  --color-text-faint: #52525b;
 
-  /* Charcoal Black Foundation */
-  --color-charcoal-950: #08080b;
-  --color-charcoal-900: #0e0e13;
-  --color-charcoal-850: #14141c;
-  --color-charcoal-800: #1c1c27;
-  --color-charcoal-700: #2a2a3a;
+  /* Borders */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.14);
+  --color-border-active: rgba(255, 255, 255, 0.20);
 
-  /* 4-Tier Sentiment Model Colors */
-  --color-tier-skip: #ff3b5c;      /* Skip - Rose Red */
-  --color-tier-timepass: #f59e0b;  /* Timepass - Cinema Amber */
-  --color-tier-goforit: #ff6b00;   /* Go For It - Sunset Flame Orange */
-  --color-tier-perfection: #e50914;/* Perfection - Pure Fiery Crimson */
+  /* Brand Palette — used sparingly */
+  --color-accent: #e50914;
+  --color-accent-hover: #ff2e3b;
+  --color-accent-muted: rgba(229, 9, 20, 0.15);
+  /* 4-Tier Sentiment Rating Colors (Removed, using primary/accent only) */
 
-  /* Typography */
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  /* Typography Stack */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-syne: 'Syne', sans-serif;
-  --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   --font-heading: 'Space Grotesk', sans-serif;
+  --font-syne: 'Syne', sans-serif;
 
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 18px;
-  --radius-xl: 22px;
-  --radius-2xl: 28px;
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
   --radius-full: 9999px;
 }
 
 
 /* ============================================================
-   BASE RESETS & APPLE-INSPIRED CINEMA CANVAS
+   CUSTOM PROPERTIES — Motion, Easing
+   ============================================================ */
+:root {
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Legacy aliases for existing components */
+  --ease-ios-spring: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-smooth-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-medium: 250ms;
+}
+
+
+/* ============================================================
+   BASE RESETS
    ============================================================ */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-}
-
-a, button {
-  -webkit-tap-highlight-color: transparent;
-  outline: none;
-}
-
-a:focus, button:focus,
-a:focus-visible, button:focus-visible {
-  outline: none;
 }
 
 html {
@@ -81,18 +83,42 @@ html {
 }
 
 body {
-  background-color: #070709;
-  color: #f5f5f7;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
   margin: 0;
   padding: 0;
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
-/* Custom Cinema Liquid Scrollbar */
+/* ============================================================
+   ACCESSIBILITY — Focus indicators RESTORED
+   ============================================================ */
+
+/* Interactive elements get visible focus ring on keyboard nav */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Mouse users: no outline ring */
+a:focus:not(:focus-visible),
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ============================================================
+   SCROLLBAR — Subtle, thin
+   ============================================================ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -101,86 +127,19 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
-  border: 1px solid rgba(0, 0, 0, 0.3);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(229, 9, 20, 0.7);
+  background: rgba(255, 255, 255, 0.24);
 }
 
-*:focus-visible {
-  outline: 2px solid rgba(229, 9, 20, 0.7) !important;
-  outline-offset: 2px !important;
-}
 
-/* ============================================================
-   APPLE-GRADE EASINGS & TIMINGS
-   ============================================================ */
-:root {
-  --ease-ios-spring: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-smooth-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-  
-  --duration-fast: 180ms;
-  --duration-medium: 300ms;
-  --duration-slow: 450ms;
-}
+
+
 
 /* ============================================================
-   VISIONOS & APPLE-GRADE FROSTED GLASSMORPHISM
-   ============================================================ */
-.glass-panel {
-  background: rgba(15, 15, 22, 0.55);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    0 16px 40px -10px rgba(0, 0, 0, 0.75), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-
-.glass-card {
-  background: rgba(16, 16, 24, 0.45);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 
-    0 10px 30px -8px rgba(0, 0, 0, 0.65), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  transition: all var(--duration-medium) var(--ease-ios-spring);
-}
-
-.glass-card:hover {
-  background: rgba(24, 24, 34, 0.70);
-  border-color: rgba(229, 9, 20, 0.45);
-  transform: translateY(-3px);
-  box-shadow: 
-    0 20px 45px -10px rgba(0, 0, 0, 0.85), 
-    0 0 24px -4px rgba(229, 9, 20, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
-}
-
-.glass-input {
-  background: rgba(12, 12, 16, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  color: #ffffff;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
-  transition: all var(--duration-fast) var(--ease-smooth-out);
-}
-
-.glass-input:focus {
-  background: rgba(16, 16, 22, 0.88);
-  border-color: #e50914;
-  box-shadow: 
-    0 0 0 3px rgba(229, 9, 20, 0.25),
-    inset 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* ============================================================
-   BUTTON DESIGNS (APPLE TACTILE + CINEMA SCARLET)
+   BUTTONS — Grounded, no floaty transforms
    ============================================================ */
 
 .btn-primary {
@@ -188,125 +147,78 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #e50914 0%, #ff2e3b 50%, #c40812 100%);
+  background: var(--color-accent);
   color: #ffffff;
-  font-weight: 700;
-  font-family: var(--font-display);
-  letter-spacing: 0.02em;
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 
-    0 4px 18px -2px rgba(229, 9, 20, 0.45), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  font-weight: 600;
+  font-family: var(--font-sans);
+  letter-spacing: 0.01em;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: all var(--duration-fast) var(--ease-ios-spring);
+  transition: all var(--duration-fast) var(--ease-spring);
+  will-change: transform;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1.5px) scale(1.01);
-  background: linear-gradient(135deg, #ff2e3b 0%, #e50914 50%, #b80710 100%);
-  box-shadow: 
-    0 8px 26px -4px rgba(229, 9, 20, 0.65), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
-  filter: brightness(1.05);
+  background: var(--color-accent-hover);
+  box-shadow: 0 4px 16px -4px rgba(229, 9, 20, 0.4);
 }
 
 .btn-primary:active {
-  transform: translateY(0) scale(0.98);
-  filter: brightness(0.95);
-  box-shadow: 0 2px 10px -2px rgba(229, 9, 20, 0.4);
+  transform: scale(0.96);
 }
+
+
 
 .btn-fire {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: linear-gradient(135deg, #e50914 0%, #ff5500 50%, #ffa033 100%);
+  background: var(--color-accent);
   color: #ffffff;
-  font-weight: 700;
-  font-family: var(--font-display);
-  letter-spacing: 0.02em;
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 
-    0 4px 20px -2px rgba(255, 107, 0, 0.45), 
-    0 0 16px -2px rgba(229, 9, 20, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+  font-family: var(--font-sans);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: all var(--duration-fast) var(--ease-ios-spring);
+  transition: all var(--duration-fast) var(--ease-spring);
+  will-change: transform;
 }
 
 .btn-fire:hover {
-  transform: translateY(-1.5px) scale(1.02);
-  background: linear-gradient(135deg, #ff2e3b 0%, #ff6b00 50%, #ffb833 100%);
-  box-shadow: 
-    0 8px 28px -4px rgba(255, 107, 0, 0.65), 
-    0 0 24px -2px rgba(229, 9, 20, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow: 0 4px 16px -4px rgba(229, 9, 20, 0.4);
 }
 
 .btn-fire:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.96);
 }
-
-.text-gradient-fire {
-  background: linear-gradient(135deg, #ff3b47 0%, #ff6b00 55%, #ffa033 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.bg-gradient-fire {
-  background: linear-gradient(135deg, #e50914 0%, #ff5500 50%, #ffa033 100%);
-}
-
-.bg-charcoal-card {
-  background: #101015;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.bg-charcoal-card:hover {
-  background: #16161f;
-  border-color: rgba(255, 107, 0, 0.35);
-}
-
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  color: #f5f5f7;
-  font-weight: 600;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-weight: 500;
   font-family: var(--font-sans);
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 
-    0 4px 16px -2px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-ios-spring);
+  transition: all var(--duration-fast) var(--ease-spring);
+  will-change: transform;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.22);
-  transform: translateY(-1.5px);
-  box-shadow: 
-    0 8px 24px -4px rgba(0, 0, 0, 0.65), 
-    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-hover);
 }
 
 .btn-secondary:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.96);
 }
 
 .btn-danger {
@@ -314,48 +226,66 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: rgba(225, 29, 72, 0.15);
-  color: #fb7185;
+  background: var(--color-accent-muted);
+  color: var(--color-accent);
   font-weight: 600;
-  border-radius: var(--radius-xl);
-  border: 1px solid rgba(225, 29, 72, 0.35);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(229, 9, 20, 0.2);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-ios-spring);
+  transition: all var(--duration-fast) var(--ease-spring);
+  will-change: transform;
 }
 
 .btn-danger:hover {
-  background: rgba(225, 29, 72, 0.28);
-  color: #ffffff;
-  border-color: rgba(225, 29, 72, 0.6);
-  transform: translateY(-1px);
+  background: rgba(229, 9, 20, 0.25);
+}
+
+.btn-danger:active {
+  transform: scale(0.96);
+}
+
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+.text-gradient-fire {
+  color: var(--color-accent);
+}
+
+.bg-gradient-fire {
+  background: var(--color-accent);
+}
+
+.bg-charcoal-card {
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  transition: all var(--duration-fast) var(--ease-spring);
+  will-change: transform;
+}
+
+.bg-charcoal-card:hover {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-hover);
+}
+
+.bg-charcoal-card:active {
+  transform: scale(0.98);
 }
 
 /* ============================================================
-   SUBTLE 35MM FILM GRAIN
+   SKELETON LOADING
    ============================================================ */
-.film-grain {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.03;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
-  background-size: 4px 4px;
-  contain: strict;
-}
-
-/* Skeleton Loading Shimmer */
 .skeleton-shimmer {
   background: linear-gradient(
-    90deg, 
-    rgba(255, 255, 255, 0.02) 25%, 
-    rgba(255, 255, 255, 0.06) 50%, 
-    rgba(255, 255, 255, 0.02) 75%
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.03) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-loading 1.8s infinite;
+  animation: skeleton-loading 1.8s ease-in-out infinite;
+  border-radius: var(--radius-sm);
 }
 
 @keyframes skeleton-loading {
@@ -363,35 +293,47 @@ body {
   100% { background-position: -200% 0; }
 }
 
+
+/* ============================================================
+   ANIMATIONS — Purposeful only
+   ============================================================ */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(14px) scale(0.99); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes toast-slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .animate-fade-in {
-  animation: fade-in 220ms var(--ease-smooth-out) both;
+  animation: fade-in 200ms var(--ease-out) both;
 }
 
 .animate-fade-up {
-  animation: fade-up 280ms var(--ease-smooth-out) both;
+  animation: fade-up 250ms var(--ease-out) both;
 }
 
 .animate-toast-slick {
-  animation: toast-slide-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: toast-slide-in 200ms var(--ease-out) both;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

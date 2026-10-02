@@ -8,7 +8,6 @@ import {
 import { API_URL, getPosterUrl, getAuthHeaders } from '../config';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import GlassSurface from '../components/GlassSurface';
 
 export default function Schedule() {
   const { user } = useAuth();

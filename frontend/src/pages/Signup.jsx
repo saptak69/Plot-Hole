@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, Lock, Mail, User, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { BrandMark } from '../components/Logo';
-import GlassSurface from '../components/GlassSurface';
 
 export default function Signup() {
   const { signup } = useAuth();
@@ -42,114 +41,101 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 font-sans text-slate-100 relative min-h-[85vh] overflow-hidden">
-      <div className="relative z-10 w-full max-w-md">
-        <GlassSurface
-          width="100%"
-          height="auto"
-          borderRadius={32}
-          backgroundOpacity={0.78}
-          blur={24}
-          borderOpacity={0.16}
-          frosted={true}
-          className="shadow-[0_25px_70px_rgba(0,0,0,0.95),0_0_35px_rgba(229,9,20,0.12)]"
-        >
-          <div className="p-6 sm:p-9 space-y-6 w-full">
-            {/* Header */}
-            <div className="text-center pb-2 space-y-2 relative">
-              <div className="flex justify-center mb-3">
-                <BrandMark size="lg" />
-              </div>
-              <h2 className="text-2xl md:text-3xl font-display font-black uppercase text-white tracking-tight">
-                Join PlotHole
-              </h2>
-              <p className="text-xs text-slate-300 font-normal font-sans">
-                Log movies, share verdicts, and mind the gap in cinema
-              </p>
-            </div>
-
-            {/* Form Content */}
-            <div className="space-y-5">
-              {error && (
-                <div className="p-3.5 border border-rose-500/40 bg-rose-500/15 text-rose-300 rounded-2xl flex items-start gap-2.5 text-xs font-sans font-medium">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span className="text-left leading-relaxed">{error}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4 text-left font-sans">
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
-                    Username
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      required
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
-                      placeholder="cinephile_alias"
-                    />
-                    <User className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
-                    Email Address
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
-                      placeholder="name@domain.com"
-                    />
-                    <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-[11px] font-mono font-bold uppercase text-slate-300 tracking-wider">
-                    Password (Min 6 characters)
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-black/60 text-slate-100 border border-white/12 px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-[#e50914] focus:ring-1 focus:ring-[#e50914] transition-all placeholder:text-slate-500"
-                      placeholder="••••••••"
-                    />
-                    <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full glass-btn-red py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-lg font-display font-bold uppercase tracking-wider cursor-pointer"
-                  >
-                    <span>{loading ? 'Creating Account...' : 'Join PlotHole Free'}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </form>
-
-              <p className="text-center text-xs text-slate-400 pt-4 border-t border-white/10 font-sans">
-                Already have an account?{' '}
-                <Link to="/login" className="text-[#ff4d5a] hover:text-white font-bold font-display uppercase tracking-wider transition-colors">
-                  Sign In here
-                </Link>
-              </p>
-            </div>
+    <div className="flex-1 flex items-center justify-center py-16 sm:py-24 px-4 sm:px-6 font-sans relative min-h-[85vh]">
+      <div className="w-full max-w-md bg-bg-elevated border border-border rounded-3xl p-6 sm:p-9 shadow-sm">
+        {/* Header */}
+        <div className="text-center pb-2 space-y-2 mb-6">
+          <div className="flex justify-center mb-3">
+            <BrandMark size="lg" />
           </div>
-        </GlassSurface>
+          <h2 className="text-2xl md:text-3xl font-display font-black uppercase text-text-primary tracking-tight">
+            Join PlotHole
+          </h2>
+          <p className="text-xs text-text-secondary font-sans">
+            Log movies, share verdicts, and mind the gap in cinema
+          </p>
+        </div>
+
+        {/* Form Content */}
+        <div className="space-y-5">
+          {error && (
+            <div className="p-3.5 border border-error/20 bg-error/10 text-error rounded-2xl flex items-start gap-2.5 text-xs font-sans font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span className="text-left leading-relaxed">{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4 text-left font-sans">
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-text-secondary tracking-wider">
+                Username
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full bg-bg-surface text-text-primary border border-border px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted"
+                  placeholder="cinephile_alias"
+                />
+                <User className="absolute left-3.5 top-3.5 w-4 h-4 text-text-muted" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-text-secondary tracking-wider">
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-bg-surface text-text-primary border border-border px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted"
+                  placeholder="name@domain.com"
+                />
+                <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-text-muted" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-mono font-bold uppercase text-text-secondary tracking-wider">
+                Password (Min 6 characters)
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-bg-surface text-text-primary border border-border px-4 py-3 pl-10 text-xs rounded-2xl focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted"
+                  placeholder="••••••••"
+                />
+                <Lock className="absolute left-3.5 top-3.5 w-4 h-4 text-text-muted" />
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-primary w-full py-3 rounded-2xl text-xs flex items-center justify-center gap-2 shadow-sm font-display font-bold uppercase tracking-wider cursor-pointer"
+              >
+                <span>{loading ? 'Creating Account...' : 'Join PlotHole Free'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </form>
+
+          <p className="text-center text-xs text-text-secondary pt-4 border-t border-border font-sans">
+            Already have an account?{' '}
+            <Link to="/login" className="text-accent hover:text-text-primary font-bold font-display uppercase tracking-wider transition-colors">
+              Sign In here
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

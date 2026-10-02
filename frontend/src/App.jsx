@@ -1,37 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useParams, Link } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 
 import Navbar from './components/Navbar';
-import Logo, { BrandMark } from './components/Logo';
-import CinemaBackground from './components/CinemaBackground';
-import Home from './pages/Home';
-import MovieDetails from './pages/MovieDetails';
-import SearchPage from './pages/Search';
-import Profile from './pages/Profile';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import SocialFeed from './pages/SocialFeed';
-import ListsPage from './pages/Lists';
-import Schedule from './pages/Schedule';
-import Spaces from './pages/Spaces';
-import NotFound from './pages/NotFound';
+import Logo from './components/Logo';
+import AmbientBackground from './components/CinemaBackground';
+import ErrorBoundary from './components/ErrorBoundary';
 import PersonModal from './components/PersonModal';
 
 import './App.css';
 
+// Route-level code splitting — each page loads only when visited
+const Home = lazy(() => import('./pages/Home'));
+const MovieDetails = lazy(() => import('./pages/MovieDetails'));
+const SearchPage = lazy(() => import('./pages/Search'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const SocialFeed = lazy(() => import('./pages/SocialFeed'));
+const ListsPage = lazy(() => import('./pages/Lists'));
+const Schedule = lazy(() => import('./pages/Schedule'));
+const Spaces = lazy(() => import('./pages/Spaces'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes fresh cache
-      gcTime: 30 * 60 * 1000, // 30 minutes cache retention
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
   },
 });
+
+// Route-level loading fallback
+function PageLoader() {
+  return (
+    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
+      <div className="space-y-3 text-center">
+        <div className="w-8 h-8 mx-auto rounded-full border-2 border-border border-t-accent animate-spin" />
+        <p className="text-text-muted text-sm font-mono">Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function NavigateToMedia() {
   const { id } = useParams();
@@ -52,66 +67,72 @@ function MainLayout() {
 
   return (
     <>
-      <div className="min-h-screen bg-[#070709] text-slate-100 flex flex-col selection:bg-[#e50914] selection:text-white relative">
-        {/* 3D Vanta Cinema Background (Cinematic Mist) + Projector Embers */}
-        <CinemaBackground showParticles={true} particleCount={45} />
+      <div className="min-h-screen bg-bg-primary text-text-primary flex flex-col selection:bg-accent selection:text-white relative">
+        {/* Ambient cinematic background — CSS only, zero runtime cost */}
+        <AmbientBackground />
 
-        {/* Subtle 35mm Tactile Film Grain */}
-        {/* <div className="film-grain" /> */}
+        {/* Skip to main content — accessibility */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:bg-accent focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-medium"
+        >
+          Skip to main content
+        </a>
 
         <Navbar />
 
-        <main className="flex-1 flex flex-col pb-20 md:pb-0 relative z-10">
-          <Routes>
-            <Route path="/" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
-            <Route path="/explore" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/spaces" element={<Spaces />} />
-            <Route path="/collections" element={<ListsPage />} />
-            <Route path="/collections/:id" element={<ListsPage />} />
-            <Route path="/lists" element={<ListsPage />} />
-            <Route path="/lists/:id" element={<ListsPage />} />
-            <Route path="/movies/:id" element={<NavigateToMedia />} />
-            <Route path="/content/:slug" element={<NavigateToContent />} />
-            <Route path="/media/:mediaType/:id" element={<MovieDetails onOpenPerson={(id) => setSelectedPersonId(id)} />} />
-            <Route path="/search" element={<SearchPage />} />
-            <Route path="/u/:username" element={<Profile />} />
-            <Route path="/profile/:username" element={<Profile />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/social" element={<SocialFeed />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+        <main id="main-content" className="flex-1 flex flex-col pb-20 md:pb-0 relative z-10">
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
+                <Route path="/explore" element={<Home onOpenPerson={(id) => setSelectedPersonId(id)} />} />
+                <Route path="/schedule" element={<Schedule />} />
+                <Route path="/spaces" element={<Spaces />} />
+                <Route path="/collections" element={<ListsPage />} />
+                <Route path="/collections/:id" element={<ListsPage />} />
+                <Route path="/lists" element={<ListsPage />} />
+                <Route path="/lists/:id" element={<ListsPage />} />
+                <Route path="/movies/:id" element={<NavigateToMedia />} />
+                <Route path="/content/:slug" element={<NavigateToContent />} />
+                <Route path="/media/:mediaType/:id" element={<MovieDetails onOpenPerson={(id) => setSelectedPersonId(id)} />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/u/:username" element={<Profile />} />
+                <Route path="/profile/:username" element={<Profile />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/social" element={<SocialFeed />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </main>
 
-        {/* Luxury Cinema Footer */}
-        <footer className="py-14 border-t border-white/8 bg-[#040406] text-slate-400 font-sans relative overflow-hidden">
-          {/* Ambient Bottom Glow */}
-          <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#e50914]/8 via-transparent to-transparent pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto px-6 space-y-8 relative z-10">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/8 text-center md:text-left">
+        {/* Footer */}
+        <footer className="py-12 border-t border-border bg-bg-primary text-text-muted font-sans relative">
+          <div className="max-w-7xl mx-auto px-6 space-y-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-border text-center md:text-left">
               <div className="space-y-2">
                 <Logo size="md" showTagline={true} />
-                <p className="text-xs text-slate-400 max-w-md leading-relaxed pt-1">
-                  The social chronicle & review vault for discerning cinephiles. Discover masterworks, log honest verdicts, and mind the gap in cinema.
+                <p className="text-xs text-text-muted max-w-md leading-relaxed">
+                  The editorial film journal for discerning cinephiles. Discover films, log honest verdicts, and share your taste.
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono">
-                <Link to="/" className="hover:text-[#e50914] transition-colors">Explore</Link>
-                <Link to="/schedule" className="hover:text-[#e50914] transition-colors">Schedule</Link>
-                <Link to="/spaces" className="hover:text-[#e50914] transition-colors">Spaces</Link>
-                <Link to="/lists" className="hover:text-[#e50914] transition-colors">Collections</Link>
-              </div>
+              <nav className="flex flex-wrap items-center justify-center gap-6 text-xs font-mono" aria-label="Footer navigation">
+                <Link to="/" className="hover:text-accent transition-colors">Discover</Link>
+                <Link to="/schedule" className="hover:text-accent transition-colors">Schedule</Link>
+                <Link to="/spaces" className="hover:text-accent transition-colors">Spaces</Link>
+                <Link to="/lists" className="hover:text-accent transition-colors">Collections</Link>
+              </nav>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
-              <p>© {new Date().getFullYear()} PlotHole Chronicles. All rights reserved.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-text-faint">
+              <p>© {new Date().getFullYear()} PlotHole. All rights reserved.</p>
               <p className="flex items-center gap-2">
-                <span>Curated with craft</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#e50914] inline-block shadow-[0_0_8px_#e50914]" />
-                <span>Powered by TMDB API</span>
+                <span>Powered by TMDB</span>
+                <span className="w-1 h-1 rounded-full bg-accent inline-block" aria-hidden="true" />
+                <span>Built with care</span>
               </p>
             </div>
           </div>
