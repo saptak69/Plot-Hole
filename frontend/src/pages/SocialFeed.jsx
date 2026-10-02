@@ -32,7 +32,7 @@ function SimpleTabBar({ tabs, activeTab, onTabChange, className = '' }) {
             )}
           </button>
         );
-      });
+      })}
     </div>
   );
 }
